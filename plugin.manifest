@@ -1,0 +1,11 @@
+pluginclassname=LiveStreaming
+pluginname=LiveStreaming
+origin=virtUOS
+version=1.0
+studipMinVersion=4.0
+studipMaxVersion=4.6.99
+category=Kommunikation und Zusammenarbeit
+displayname=Studip Live Streaming
+summary=Video Player für Live-Streams und Videos
+description=Ein Video Player für Streams und Vidoes basierend auf videojs.
+icon=../../../assets/images/icons/black/video2.svg
