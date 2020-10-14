@@ -1,0 +1,20 @@
+@import 'video.js/dist/video-js.min.css';
+
+section {
+    .video-container {
+        margin: 2em !important;
+        #stream_video {
+            margin: auto;
+        }
+
+        .new-player {
+            margin: 1em;
+            text-align: center;
+        }
+
+        .livestream-countdown-container {
+            margin: 1em;
+            text-align: center;
+        }
+    }
+}
