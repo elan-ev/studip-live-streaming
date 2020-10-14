@@ -1,7 +1,7 @@
 <?php
 
 /**
- * StreamPlayer plugin class for Stud.IP
+ * LiveStreaming plugin class for Stud.IP
  *
  * @author    Viktoria Wiebe <vwiebe@uni-osnabrueck.de>
  * 
@@ -10,9 +10,12 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  */
+require_once 'lib/locallib.inc.php';
 
 class LiveStreaming extends StudIPPlugin implements StandardPlugin
 {
+    const GETTEXT_DOMAIN = 'LiveStreaming';
+
     public function __construct()
     {
         global $perm;
@@ -20,8 +23,19 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin
         parent::__construct();
 
         // set up translation domain
-        bindtextdomain('LiveStreaming', dirname(__FILE__) . '/locale');
+        bindtextdomain(static::GETTEXT_DOMAIN, $this->getPluginPath() . '/locale');
+        bind_textdomain_codeset(static::GETTEXT_DOMAIN, 'UTF-8');
+        
+        StudipAutoloader::addClassLookups([
+            'LiveStream'        => __DIR__ . '/lib/LiveStream.php',
+        ]);
 
+        if ($perm->have_perm('admin')) {
+            $item = new Navigation($this->_('LiveStreaming konfigurieren'), PluginEngine::getLink($this, array(), 'admin/admin'));
+            if (Navigation::hasItem('/admin/config') && !Navigation::hasItem('/admin/config/livestreaming')) {
+                Navigation::addItem('/admin/config/livestreaming', $item);
+            }
+        }
     }
 
     /**
@@ -42,14 +56,16 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin
         global $perm;
 
         if ($perm->have_studip_perm('admin', $course_id)) {
-            $navigation = new Navigation($this->getPluginName(), PluginEngine::getURL('LiveStreaming/player/admin'));
-            $navigation->addSubNavigation('admin', new Navigation(_('Übersicht'), PluginEngine::getURL('LiveStreaming/player/admin')));
+            $navigation = new Navigation($this->getPluginName(), PluginEngine::getURL('LiveStreaming/player/teacher'));
+            $navigation->addSubNavigation('teacher', new Navigation($this->_('Konfiguration'), PluginEngine::getURL('LiveStreaming/player/teacher')));
+            $navigation->addSubNavigation('student', new Navigation($this->_('Studentenansicht'), PluginEngine::getURL('LiveStreaming/player/student')));
         } elseif ($perm->have_studip_perm('tutor', $course_id)) {
             $navigation = new Navigation($this->getPluginName(), PluginEngine::getURL('LiveStreaming/player/teacher'));
-            $navigation->addSubNavigation('teacher', new Navigation(_('Übersicht'), PluginEngine::getURL('LiveStreaming/player/teacher')));
+            $navigation->addSubNavigation('teacher', new Navigation($this->_('Konfiguration'), PluginEngine::getURL('LiveStreaming/player/teacher')));
+            $navigation->addSubNavigation('student', new Navigation($this->_('Studentenansicht'), PluginEngine::getURL('LiveStreaming/player/student')));
         } else {
             $navigation = new Navigation($this->getPluginName(), PluginEngine::getURL('LiveStreaming/player/student'));
-            $navigation->addSubNavigation('student', new Navigation(_('Übersicht'), PluginEngine::getURL('LiveStreaming/player/student')));
+            $navigation->addSubNavigation('student', new Navigation($this->_('Live-Stream'), PluginEngine::getURL('LiveStreaming/player/student')));
         }
 
         return ['livestreaming' => $navigation];
@@ -57,9 +73,8 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin
     
     public function perform($unconsumed_path)
     {
-        PageLayout::addStylesheet($this->getPluginURL() . '/css/streamplayer.css');
-        PageLayout::addStylesheet($this->getPluginURL() . '/node_modules/video.js/dist/video-js.min.css');
-        PageLayout::addScript($this->getPluginURL() . '/node_modules/video.js/dist/video.js');
+        PageLayout::addStylesheet($this->getPluginURL() . '/assets/css/livestream.css');
+        PageLayout::addScript($this->getPluginURL() . '/assets/javascripts/livestream.js');
 
         parent::perform($unconsumed_path);
     }
@@ -86,4 +101,51 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin
         return NULL;
     }
 
+    /**
+     * Plugin localization for a single string.
+     * This method supports sprintf()-like execution if you pass additional
+     * parameters.
+     *
+     * @param String $string String to translate
+     * @return translated string
+     */
+    public function _($string)
+    {
+        $result = static::GETTEXT_DOMAIN === null
+                ? $string
+                : dcgettext(static::GETTEXT_DOMAIN, $string, LC_MESSAGES);
+        if ($result === $string) {
+            $result = _($string);
+        }
+
+        if (func_num_args() > 1) {
+            $arguments = array_slice(func_get_args(), 1);
+            $result = vsprintf($result, $arguments);
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Checks if opencast is loaded, and if course id is passed,
+     * returns the series id of the course if opencast has been set for the course
+     *
+     * @param  string  $cid course ID with default null
+     * @return bool | array | string
+    */
+    function checkOpenCast($cid = null) {
+        $opencast_plugin = PluginEngine::getPlugin("OpenCast");
+        if ($opencast_plugin) {
+            if ($cid) {
+                if ($opencast_plugin->isActivated($cid)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
 }

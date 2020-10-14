@@ -12,70 +12,7 @@
  **/
 
 class PlayerController extends PluginController {
-    
- 
-    /**
-    * Displays StreamPlayer data (streaming URLs, username, password) and
-    * lets the admin change the data.
-    *
-    */
-    public function admin_action()
-    {
-        global $perm;
-        if(!$perm->have_studip_perm('admin', Context::getId())) {
-            throw new AccessDeniedException('Sie verfügen nicht über die notwendigen Rechte für diese Aktion');
-        }
-        
-        Navigation::activateItem('/course/livestreaming/admin');
-        
-        $this->title = _('LiveStreaming Daten');
-        
-        // fetch access data for stream (url, filename, login data)
-        $db = DBManager::get();
-        $stmt = $db->prepare("SELECT * FROM stream_player WHERE player_id = ?");
-        $stmt->execute([Context::getId()]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        $this->player_url       = $result['player_url'];
-        $this->filename         = $result['filename'];
-        $this->loginname        = $result['loginname'];
-        $this->player_password  = $result['password'];
-        $this->sender_url       = $result['sender_url'];
-    }
-    
-    /**
-    * Inserts new player data or updates old data (streaming url, username, password)
-    */
-    public function admin_change_playerdata_action()
-    {
-        global $perm;
-        CSRFProtection::verifyUnsafeRequest();
-        if(!$perm->have_studip_perm('admin', Context::getId())) {
-            throw new AccessDeniedException('Sie verfügen nicht über die notwendigen Rechte für diese Aktion');
-        }
-
-        $loginname  = Request::option('loginname');
-        $password   = Request::option('player_password');
-        $sender_url = Request::get('sender_url');
-        $player_url = Request::get('player_url');
-        $filename   = Request::get('filename');
-        
-        // TODO: URL and filename check here
-        
-        // save to db
-        $db = DBManager::get();
-
-        $sql = "REPLACE INTO 
-                    stream_player (player_id, loginname, password, sender_url, player_url, filename)
-                VALUES
-                    (?, ?, ?, ?, ?, ?)";
-        $stmt = $db->prepare($sql);
-        $stmt->execute([Context::getId(), $loginname, $password, $sender_url, $player_url, $filename]);
-        
-        PageLayout::postSuccess('Die LiveStreaming Daten wurden erfolgreich gespeichert.');
-        $this->redirect('player/admin');
-    }
-
+     
     /**
     * Displays the player and access data for the stream for lecturers.
     */
@@ -83,24 +20,80 @@ class PlayerController extends PluginController {
     {
         global $perm;
         if(!$perm->have_studip_perm('tutor', Context::getId())) {
-            throw new AccessDeniedException('Sie verfügen nicht über die notwendigen Rechte für diese Aktion');
+            throw new AccessDeniedException($this->plugin->_('Sie verfügen nicht über die notwendigen Rechte für diese Aktion'));
         }
         
         Navigation::activateItem('/course/livestreaming/teacher');
         
-        $this->title = _('LiveStreaming Übersicht');
-        
-        $db = DBManager::get();
-        $stmt = $db->prepare("SELECT * FROM stream_player WHERE player_id = ?");
-        $stmt->execute([Context::getId()]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        $this->player_username  = $result['loginname'];
-        $this->player_password  = $result['password'];
-        $this->sender_url       = $result['sender_url'];
-        $this->player_url       = $result['player_url'];
-        $this->filename         = $result['filename'];
+        $livestream_config = LiveStream::getConfig();
+        $mode = LiveStream::find(Context::getId())->mode;
 
+        if ($this->plugin->checkOpenCast(Context::getId()) && $livestream_config['oc_player_url']) {
+            $this->select_mode = true;
+        }
+
+        $this->mode = $mode;
+
+        if ($mode == MODE_DEFAULT) {
+            $this->player_username  = $livestream_config['loginname'];
+            $this->player_password  = $livestream_config['password'];
+            $this->sender_url       = str_replace(URLPLACEHOLDER, Context::getId(), $livestream_config['sender_url']);
+            $this->player_url       = str_replace(URLPLACEHOLDER, Context::getId(), $livestream_config['player_url']);
+        }
+
+        if ($mode == MODE_OPENCAST) {
+            $refresh_in_seconds = REFRESH_INTERVALS;
+            if ($todays_session = get_course_session_today(Context::getId())) {
+                if (isset($todays_session[LIVE])) {
+                    $this->show_live_countdown = true;
+                    $refresh_in_seconds = $todays_session[LIVE]['refresh_seconds'];
+                    $this->live_termin = $todays_session[LIVE]['termin'];
+                }
+    
+                if (isset($todays_session[PENDING])) {
+                    if (!isset($todays_session[LIVE])) {
+                        $refresh_in_seconds = $todays_session[PENDING]['refresh_seconds'];
+                    }
+                    $this->show_countdown = true;
+                    $this->upcoming_termin = $todays_session[PENDING]['termin'];
+                }
+                $this->response->add_header('Refresh', $refresh_in_seconds);
+            } else {
+                $this->info_message = MessageBox::info($this->plugin->_("Derzeit ist kein Live-Stream für diese Sitzung verfügbar."));
+            }
+        }
+
+    }
+
+    public function select_mode_action()
+    {
+        global $perm;
+        if(!$perm->have_studip_perm('tutor', Context::getId())) {
+            throw new AccessDeniedException($this->plugin->_('Sie verfügen nicht über die notwendigen Rechte für diese Aktion'));
+        }
+        CSRFProtection::verifyUnsafeRequest();
+        $mode  = Request::get('livestream-mode');
+
+        $error = false;
+        if ($mode != MODE_DEFAULT && $mode != MODE_OPENCAST) {
+            PageLayout::postError($this->plugin->_('Mode ist ungültig.'));
+            $error = true;
+        }
+
+        if (!$error) {
+            if ($livestream = LiveStream::find(Context::getId())) {
+                $livestream->mode = $mode;
+            } else {
+                $livestream = new LiveStream();
+                $livestream->seminar_id = Context::getId();
+                $livestream->mode = $mode;
+            }
+            $livestream->store();
+
+            PageLayout::postSuccess($this->plugin->_('Die LiveStreaming Daten wurden erfolgreich gespeichert.'));
+        }
+        
+        $this->redirect('player/teacher');
     }
 
     /**
@@ -110,8 +103,52 @@ class PlayerController extends PluginController {
     {
         Navigation::activateItem('/course/livestreaming/student');
         
-        $this->title = _('LiveStreaming');
-       
+        $this->title = $this->plugin->_('LiveStreaming');
+
+        $livestream_config = LiveStream::getConfig();
+        $mode = LiveStream::find(Context::getId())->mode;
+        $error = false;
+        if ($mode != MODE_DEFAULT && $mode != MODE_OPENCAST) {
+            $error = true;
+        }
+
+        if ($mode == MODE_DEFAULT) {
+            $this->show_player = true;
+            $this->player_url       = str_replace(URLPLACEHOLDER, Context::getId(), $livestream_config['player_url']);
+        } else {
+
+            $refresh_in_seconds = REFRESH_INTERVALS;
+            if (!$livestream_config['oc_player_url'] ||
+                    !$this->plugin->checkOpenCast(Context::getId()) ||
+                        !$todays_session = get_course_session_today(Context::getId())) {
+                $error = true;
+            }
+
+            if (isset($todays_session[LIVE])) {
+                $this->show_player = true;
+                $refresh_in_seconds = $todays_session[LIVE]['refresh_seconds'];
+                $this->termin = $todays_session[LIVE]['termin'];
+                $this->player_url= str_replace(URLPLACEHOLDER, $todays_session[LIVE]['capture_agent'], $livestream_config['oc_player_url']);
+            }
+
+            if (isset($todays_session[PENDING])) {
+                if (!isset($todays_session[LIVE])) {
+                    $refresh_in_seconds = $todays_session[PENDING]['refresh_seconds'];
+                }
+                $this->show_countdown = true;
+                $this->upcoming_termin = $todays_session[PENDING]['termin'];
+            }
+            $this->response->add_header('Refresh', $refresh_in_seconds);
+        }
+
+        
+        if ($this->show_player == true) {
+            PageLayout::addStylesheet($this->plugin->getPluginURL() . '/assets/css/videoplayer.css');
+            PageLayout::addScript($this->plugin->getPluginURL() . '/assets/javascripts/videoplayer.js');
+        }
+
+        if ($error) {
+            PageLayout::postInfo($this->plugin->_("Derzeit ist kein Live-Stream für diese Sitzung verfügbar."));
+        }
     }
-    
 }
