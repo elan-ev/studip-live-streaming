@@ -12,7 +12,7 @@
  */
 require_once 'lib/locallib.inc.php';
 
-class LiveStreaming extends StudIPPlugin implements StandardPlugin
+class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
 {
     const GETTEXT_DOMAIN = 'LiveStreaming';
 
