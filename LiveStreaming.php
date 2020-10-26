@@ -47,7 +47,7 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
     }
 
     /**
-    * Returns the tab navigation for the OSKA plugin in the given course.
+    * Returns the tab navigation for the LiveStream plugin in the given course.
     *
     * @param $course_id the given course ID
     */
@@ -57,15 +57,20 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
 
         if ($perm->have_studip_perm('admin', $course_id)) {
             $navigation = new Navigation($this->getPluginName(), PluginEngine::getURL('LiveStreaming/player/teacher'));
-            $navigation->addSubNavigation('teacher', new Navigation($this->_('Konfiguration'), PluginEngine::getURL('LiveStreaming/player/teacher')));
-            $navigation->addSubNavigation('student', new Navigation($this->_('Studentenansicht'), PluginEngine::getURL('LiveStreaming/player/student')));
+            $navigation->addSubNavigation('teacher', 
+                new Navigation($this->_('Konfiguration'), PluginEngine::getURL('LiveStreaming/player/teacher')));
+            $navigation->addSubNavigation('student', 
+                new Navigation($this->_('Studentenansicht'), PluginEngine::getURL('LiveStreaming/player/student')));
         } elseif ($perm->have_studip_perm('tutor', $course_id)) {
             $navigation = new Navigation($this->getPluginName(), PluginEngine::getURL('LiveStreaming/player/teacher'));
-            $navigation->addSubNavigation('teacher', new Navigation($this->_('Konfiguration'), PluginEngine::getURL('LiveStreaming/player/teacher')));
-            $navigation->addSubNavigation('student', new Navigation($this->_('Studentenansicht'), PluginEngine::getURL('LiveStreaming/player/student')));
+            $navigation->addSubNavigation('teacher', 
+                new Navigation($this->_('Konfiguration'), PluginEngine::getURL('LiveStreaming/player/teacher')));
+            $navigation->addSubNavigation('student', 
+                new Navigation($this->_('Studentenansicht'), PluginEngine::getURL('LiveStreaming/player/student')));
         } else {
             $navigation = new Navigation($this->getPluginName(), PluginEngine::getURL('LiveStreaming/player/student'));
-            $navigation->addSubNavigation('student', new Navigation($this->_('Live-Stream'), PluginEngine::getURL('LiveStreaming/player/student')));
+            $navigation->addSubNavigation('student', 
+                new Navigation($this->_('Live-Stream'), PluginEngine::getURL('LiveStreaming/player/student')));
         }
 
         return ['livestreaming' => $navigation];

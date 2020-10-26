@@ -5,16 +5,12 @@
             <span>
                 <strong><?= $plugin->_('Stream-URL (Sender)') ?>:</strong>
                 <br>
-                <?= htmlReady($sender_url) ?>
-            </span>
-        </label>
+                <?= htmlReady($sender_url) ?></span></label>
         <label>
             <span>
                 <strong><?= $plugin->_('Stream-URL (Empfänger)') ?>:</strong>
                 <br>
-                <?= htmlReady($player_url) ?>
-            </span>
-        </label>
+                <?= htmlReady($player_url) ?></span></label>
         <label>
             <span>
                 <strong><?= $plugin->_('Benutzername') ?>:</strong>
