@@ -39,6 +39,21 @@ class PlayerController extends PluginController {
             $this->player_password  = $livestream_config['password'];
             $this->sender_url       = str_replace(URLPLACEHOLDER, Context::getId(), $livestream_config['sender_url']);
             $this->player_url       = str_replace(URLPLACEHOLDER, Context::getId(), $livestream_config['player_url']);
+            
+            $livestream = LiveStream::find(Context::getId());
+            
+            $this->countdown_activated = intval($livestream->countdown_activated);
+            
+            if ($this->countdown_activated == 1) {
+                if (strtotime($livestream->countdown_timestamp) > 0) {
+                    $this->countdown_manuell = 1;
+                    $this->next_livestream = $livestream->countdown_timestamp;
+                } else {
+                    $this->countdown_manuell = 0;
+                }
+            }
+            
+            $this->sem_next_session = Seminar::getInstance(Context::getId())->getNextDate();
         }
 
         if ($mode == MODE_OPENCAST) {
@@ -87,12 +102,52 @@ class PlayerController extends PluginController {
                 $livestream = new LiveStream();
                 $livestream->seminar_id = Context::getId();
                 $livestream->mode = $mode;
+                $livestream->countdown_activated = 0;
+                $livestream->countdown_timestamp = 0;
             }
             $livestream->store();
 
             PageLayout::postSuccess($this->plugin->_('Die LiveStreaming Daten wurden erfolgreich gespeichert.'));
         }
         
+        $this->redirect('player/teacher');
+    }
+    
+    /**
+    * Toggles the countdown for normal live streaming.
+    */
+    public function toggle_countdown_action()
+    {
+        global $perm;
+        if(!$perm->have_studip_perm('tutor', Context::getId())) {
+            throw new AccessDeniedException($this->plugin->_('Sie verfügen nicht über die notwendigen Rechte für diese Aktion'));
+        }
+        CSRFProtection::verifyUnsafeRequest();
+        
+        $mode = LiveStream::find(Context::getId())->mode;
+        
+        if ($mode != MODE_DEFAULT) {
+            PageLayout::postError($this->plugin->_('Mode ist ungültig.'));
+        } else {
+            $countdown_active = Request::int('countdown_active');
+            $next_livestream_date = Request::getDateTime('next_livestream_date', 'd.m.Y', 'next_livestream_time', 'H:i')->format('Y-m-d H:i:s');
+            
+            if (!$next_livestream_date && Request::int('manuell') == 1) {
+                PageLayout::postError($this->plugin->_('Die Termin- oder Zeitangabe fehlt oder ist ungültig.'));
+            } else {
+            
+                // update LiveStream countdown option
+                $livestream = LiveStream::find(Context::getId());
+                $livestream->countdown_activated = $countdown_active;
+                if ($countdown_active == 1 && Request::int('manuell') == 1) {
+                    $livestream->countdown_timestamp = $next_livestream_date;
+                } else {
+                    // delete timestamp if countdown is deactivated or next session date is used
+                    $livestream->countdown_timestamp = 0;
+                }
+                $livestream->store();
+            }
+        }
         $this->redirect('player/teacher');
     }
 
@@ -115,6 +170,19 @@ class PlayerController extends PluginController {
         if ($mode == MODE_DEFAULT) {
             $this->show_player = true;
             $this->player_url       = str_replace(URLPLACEHOLDER, Context::getId(), $livestream_config['player_url']);
+            
+            // countdown
+            $livestream = LiveStream::find(Context::getId());
+            if (intval($livestream->countdown_activated) == 1) {
+                if (strtotime($livestream->countdown_timestamp) > 0) {
+                    $this->livestream_termin = strtotime($livestream->countdown_timestamp);
+                } else {
+                    $livestream_datetime = explode(" -", Seminar::getInstance(Context::getId())->getNextDate())[0];
+                    $livestream_datetime = explode(", ", $livestream_datetime)[1];
+                    $this->livestream_termin = strtotime($livestream_datetime);
+                }
+            }
+            
         } else {
 
             $refresh_in_seconds = REFRESH_INTERVALS;

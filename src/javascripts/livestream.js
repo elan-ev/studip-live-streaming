@@ -41,6 +41,28 @@ $(function(){
             }
         });
     }
+    
+    $(document).on('change', '#countdown_active', function(event) {
+        if ($('input[name="countdown_active"]:checked').val() == 1) {
+            $('#livestream_next').show();
+            if ($('input[name="manuell"]:checked').val() == 1) {
+                $('#livestream_next_date').show();
+            }
+        }
+        if ($('input[name="countdown_active"]:checked').val() == 0) {
+            $('#livestream_next').hide();
+            $('#livestream_next_date').hide();
+        }
+    });
+    
+    $(document).on('change', '#livestream_next', function(event) {
+        if ($('input[name="manuell"]:checked').val() == 1) {
+            $('#livestream_next_date').show();
+        } 
+        if ($('input[name="manuell"]:checked').val() == 0) {
+            $('#livestream_next_date').hide();
+        }
+    });
 });
 
 function getCountdown(end_timestamp) {
