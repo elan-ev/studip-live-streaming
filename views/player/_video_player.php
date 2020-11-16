@@ -26,7 +26,8 @@
         </video>
         <div class="new-player">
             <?= \Icon::create('refresh', 'clickable', ['size' => '20', 'title' => $plugin->_('Player neu laden')])->asInput(['id' => 'player-reload-btn', 'class' => 'reload-player-btn']) ?>
-            <p><?= $plugin->_('Falls Sie eine Fehlermeldung erhalten hat das Live-Streaming wahrscheinlich noch nicht begonnen. Der Live-Stream beginnt dann leider nicht automatisch sondern Sie müssen den Player neu laden.') ?></p>
+            <p><?= $plugin->_('Falls Sie eine Fehlermeldung erhalten hat das Live-Streaming wahrscheinlich noch nicht begonnen. Der Player wird automatisch alle 30 Sekunden aktualisiert. 
+                                Sollte dies nicht der Fall sein können Sie den Player manuell neu laden.') ?></p>
         </div>
     </div>
     <script>
@@ -47,6 +48,22 @@
                         type: 'application/dash+xml'
                     },
                 ]);
+            });
+            
+            player.on('error', function(event) {
+            setTimeout(() => { 
+                player.reset();
+                player.src([
+                    {
+                        src: PLAYER_URL,
+                        type: 'application/x-mpegurl'
+                    },
+                    {
+                        src: PLAYER_URL,
+                        type: 'application/dash+xml'
+                    },
+                ]); 
+                }, 30000);
             });
         }
     </script>
