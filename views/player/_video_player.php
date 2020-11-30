@@ -20,7 +20,7 @@
                 "controls": true       
             }'
         >
-            
+            <source id="video_source_rand" src="https://moctobpltc-i.akamaihd.net/hls/live/571329/eight/playlist.m3u8" type="application/x-mpegurl">
             <source id="video_source_1" src="<?= $player_url ?>" type='application/x-mpegurl' />
             <source id="video_source_2" src="<?= $player_url ?>" type='application/dash+xml' />
         </video>
@@ -30,9 +30,20 @@
                                 Sollte dies nicht der Fall sein können Sie den Player manuell neu laden.') ?></p>
         </div>
     </div>
+    
+    <div class="zoom-info"><?= $plugin->_('Um das Video zu vergrößern/verkleinern, 
+                                        halten Sie die Shift-Taste gedrückt und 
+                                        benutzen Sie das Mausrad, oder nutzen Sie 
+                                        die Funktionen in der Kontrollzeile') ?></div>
+                                        
+    <div class="livestreaming-zoomin" title="<?= $plugin->_('Vergrößern') ?>"></div>
+    <div class="livestreaming-zoomout" title="<?= $plugin->_('Verkleinern') ?>"></div>
+    <div class="livestreaming-zoomdefault" title="<?= $plugin->_('Standardgröße wiederherstellen') ?>"></div>
+    
     <script>
         let PLAYER_URL = "<?= $player_url ?>";
         window.onload = function () {
+
             let player = videojs('stream_video');
             player.play();
             document.getElementById('player-reload-btn').addEventListener("click", function(e) {
@@ -49,22 +60,214 @@
                     },
                 ]);
             });
+
+            // add overlay info about zoom functions
+            $('#stream_video').prepend($('.zoom-info'));
+            // remove zoom info after video plays for the first time
+            player.one('play', function() {
+                $('.zoom-info').remove();
+            });
+
+            /************************/
+            /*** ADD ZOOM BUTTONS ***/
+            /************************/
             
+            // zoom in button
+            var zoomInButton = player.controlBar.addChild("button", {}, player.controlBar.children().length - 1);
+            var zoomInButtonDom = zoomInButton.el();
+            $(zoomInButtonDom).append($('.livestreaming-zoomin'));
+            
+            // zoom out button 
+            var zoomOutButton = player.controlBar.addChild("button", {}, player.controlBar.children().length - 1);
+            var zoomOutButtonDom = zoomOutButton.el();
+            $(zoomOutButtonDom).append($('.livestreaming-zoomout'));
+            
+            // default zoom button 
+            var zoomDefaultButton = player.controlBar.addChild("button", {}, player.controlBar.children().length - 1);
+            var zoomDefaultButtonDom = zoomDefaultButton.el();
+            $(zoomDefaultButtonDom).append($('.livestreaming-zoomdefault'));
+
+            /*********************************/
+            /*** ADD ZOOM BUTTON FUNCTIONS ***/
+            /*********************************/
+            
+            // zoom in function
+            $(zoomInButtonDom).on('click touchstart', function(e) {
+                e.stopPropagation();
+                $('#stream_video').removeClass('livestreaming-zoomout-cursor');
+                
+                if ($('#stream_video').hasClass('livestreaming-zoomin-cursor')) {
+                    $('#stream_video').removeClass('livestreaming-zoomin-cursor');
+                } else {
+                    $('#stream_video').addClass('livestreaming-zoomin-cursor');
+                    $('#stream_video').data('cursor', 1);
+                }
+            });
+            
+            $(zoomOutButtonDom).on('click touchstart', function(e) {
+                e.stopPropagation();
+                $('#stream_video').removeClass('livestreaming-zoomin-cursor');
+            
+                if ($('#stream_video').hasClass('livestreming-zoomout-cursor')) {
+                    $('#stream_video').removeClass('livestreaming-zoomout-cursor');
+                } else {
+                    $('#stream_video').addClass('livestreaming-zoomout-cursor');
+                    $('#stream_video').data('cursor', 2);
+                }
+            });
+            
+            $(zoomDefaultButtonDom).on('click touchstart', function(e) {
+                e.stopPropagation();
+                $('#stream_video').removeClass('livestreaming-zoomin-cursor');
+                $('#stream_video').removeClass('livestreaming-zoomout-cursor');
+
+                default_zoom($(player.children()).first());
+            });
+            
+            $(zoomInButtonDom).add(zoomOutButtonDom).add(zoomDefaultButtonDom).on('mouseenter', function(e) {
+                $(this).css('cursor', 'pointer');
+            });
+            
+            $(zoomInButtonDom).add(zoomOutButtonDom).add(zoomDefaultButtonDom).on('mouseleave', function(e) {
+                $(this).css('cursor', 'default');
+            });
+
+            /***********************/
+            /* VIDEO ZOOM HANDLERS */
+            /***********************/
+            
+            player.on('click', function(event) {
+                if (Number.isInteger($('#stream_video').data('cursor'))) {
+                    event.preventDefault();
+                    
+                    // zoom according to which zoom option was picked
+                    callZoomFunction(event);
+                }   
+            });
+            
+            // for mobile 
+            player.on('touchstart', function(event) {
+                if (Number.isInteger($('#stream_video').data('cursor'))) { 
+                    
+                    // call zoom function with mouse pointer coordinates for mobile
+                    callZoomFunction(event, event.touches[0].pageX, event.touches[0].pageY);
+                    
+                    // prevent video pause / resume
+                    if(player.paused()){
+                        player.play();
+                    }
+                    else{
+                        player.pause();
+                    }
+                }
+            });
+            
+            // picks zoom factor and calls zoom function
+            function callZoomFunction(event, pageX, pageY) {
+            
+                $('#stream_video').removeClass('livestreaming-zoomin-cursor');
+                $('#stream_video').removeClass('livestreaming-zoomout-cursor');
+                
+                // choose zoom factor
+                let zoomFactor = 0;
+                if ($('#stream_video').data('cursor') == 1) {
+                    zoomFactor = -1 * SCALINGFACTOR;
+                }
+                if ($('#stream_video').data('cursor') == 2) {
+                    zoomFactor = SCALINGFACTOR;
+                }
+                // call the zoom function
+                livestreaming_zoom(event, $(player.children()).first(), zoomFactor, pageX, pageY);
+                
+                if(player.paused()){
+                    player.play();
+                }
+                else{
+                    player.pause();
+                }
+            }
+            
+            // cancel zoom if right mouse button clicked
+            player.on('contextmenu', function(e) {
+                if (Number.isInteger($('#stream_video').data('cursor'))) {
+                    event.preventDefault();
+                    $('#stream_video').removeClass('livestreaming-zoomin-cursor');
+                    $('#stream_video').removeClass('livestreaming-zoomout-cursor');
+                    $('#stream_video').data('cursor', null);
+                }
+            });
+            
+            /******************/
+            /* MISC FUNCTIONS */
+            /******************/
+            
+            // reload player every 30 seconds
             player.on('error', function(event) {
-            setTimeout(() => { 
-                player.reset();
-                player.src([
-                    {
-                        src: PLAYER_URL,
-                        type: 'application/x-mpegurl'
-                    },
-                    {
-                        src: PLAYER_URL,
-                        type: 'application/dash+xml'
-                    },
-                ]); 
+                setTimeout(() => { 
+                    player.reset();
+                    player.src([
+                        {
+                            src: PLAYER_URL,
+                            type: 'application/x-mpegurl'
+                        },
+                        {
+                            src: PLAYER_URL,
+                            type: 'application/dash+xml'
+                        },
+                    ]); 
                 }, 30000);
             });
+        };
+        
+        /***************************************/
+        /* ZOOM IN AND OUT FUNCTIONS FOR VIDEO */
+        /***************************************/
+        
+        // scaling factor for click-zoom
+        const SCALINGFACTOR = 20;
+        
+        // initial scale
+        let scale = 1;
+        
+        // trigger zoom only when shift button is pressend when user is scrolling
+        $('#stream_video').on('wheel', function(e) {
+            if (e.shiftKey) {
+                livestreaming_zoom(e, this);
+            }
+        });
+        
+        // scale the video according to scroll direction and move towards mouse position
+        function livestreaming_zoom(e, elem, zoomFactor, pageX, pageY) {
+            e.preventDefault();
+            $(elem).parent().data('cursor', null);
+
+            let oldScale = scale; 
+            
+            let posX = pageX ? pageX : e.pageX;
+            let posY = pageY ? pageY : e.pageY;
+            
+            let top = posY - $(elem).parent().offset().top;
+            let left = posX - $(elem).parent().offset().left;
+            let centerY = $(elem).height() / 2;
+            let centerX = $(elem).width() / 2;
+
+            scale += zoomFactor ? zoomFactor * -0.01 : event.deltaY * -0.01;
+            scale = Math.min(Math.max(.125, scale), 4);
+            
+            left = parseInt($(elem).css('left')) + (centerX - left) * (scale - oldScale);
+            top = parseInt($(elem).css('top')) + (centerY - top) * (scale - oldScale);
+
+            $(elem).css('top', top);
+            $(elem).css('left', left);
+
+            $(elem).css('transform', `scale(${scale})`);
+        };
+        
+        function default_zoom(elem) {
+            $(elem).css('transform', 'scale(1.0)');
+            $(elem).css('top', 0);
+            $(elem).css('left', 0);
+            scale = 1;
         }
     </script>
 </section>

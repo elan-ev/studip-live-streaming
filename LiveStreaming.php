@@ -79,6 +79,7 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
     public function perform($unconsumed_path)
     {
         PageLayout::addStylesheet($this->getPluginURL() . '/assets/css/livestream.css');
+        PageLayout::addStylesheet($this->getPluginURL() . '/assets/css/livestreamzoom.css');
         PageLayout::addScript($this->getPluginURL() . '/assets/javascripts/livestream.js');
 
         parent::perform($unconsumed_path);

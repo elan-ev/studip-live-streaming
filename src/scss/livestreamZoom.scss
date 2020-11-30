@@ -1,0 +1,38 @@
+.livestreaming-zoomin {
+    background-image: url('../../../../../assets/images/icons/white/add/search.svg');
+    background-size: 16px;
+    background-repeat:no-repeat;
+    content:" ";
+    width: 16px;
+    height: 16px;
+}
+
+.livestreaming-zoomout {
+    background-image: url('../../../../../assets/images/icons/white/remove/search.svg');
+    background-size: 16px;
+    background-repeat:no-repeat;
+    content:" ";
+    width: 16px;
+    height: 16px;
+}
+
+.livestreaming-zoomdefault {
+    background-image: url('../../../../../assets/images/icons/white/search.svg');
+    background-size: 16px;
+    background-repeat:no-repeat;
+    content:" ";
+    width: 16px;
+    height: 16px;
+}
+
+.livestreaming-zoomin-cursor {
+    cursor: url('../../../../../assets/images/icons/white/add/search.svg'), auto;
+}
+
+.livestreaming-zoomout-cursor {
+    cursor: url('../../../../../assets/images/icons/white/remove/search.svg'), auto;
+}
+
+.livestreaming-zoomdefault-cursor {
+    cursor: url('../../../../../assets/images/icons/white/search.svg'), auto;
+}
