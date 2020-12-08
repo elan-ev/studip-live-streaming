@@ -20,7 +20,6 @@
                 "controls": true       
             }'
         >
-            <source id="video_source_rand" src="https://moctobpltc-i.akamaihd.net/hls/live/571329/eight/playlist.m3u8" type="application/x-mpegurl">
             <source id="video_source_1" src="<?= $player_url ?>" type='application/x-mpegurl' />
             <source id="video_source_2" src="<?= $player_url ?>" type='application/dash+xml' />
         </video>
