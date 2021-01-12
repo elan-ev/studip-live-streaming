@@ -26,10 +26,15 @@ class PlayerController extends PluginController {
         Navigation::activateItem('/course/livestreaming/teacher');
         
         $livestream_config = LiveStream::getConfig();
-        $mode = LiveStream::find(Context::getId())->mode;
+        $livestream = LiveStream::find(Context::getId());
+        $mode = $livestream->mode;
 
         if ($this->plugin->checkOpenCast(Context::getId()) && $livestream_config['oc_player_url']) {
             $this->select_mode = true;
+        } else if ($mode == MODE_OPENCAST) { // forcing the mode to DEFAULT when the opencast is not activated/configured properly
+            $mode = MODE_DEFAULT;
+            $livestream->mode = MODE_DEFAULT;
+            $livestream->store();
         }
 
         $this->mode = $mode;
