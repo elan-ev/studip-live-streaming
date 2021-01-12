@@ -47,7 +47,7 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
     }
 
     /**
-    * Returns the tab navigation for the OSKA plugin in the given course.
+    * Returns the tab navigation for the LiveStreaming plugin in the given course.
     *
     * @param $course_id the given course ID
     */
