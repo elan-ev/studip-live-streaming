@@ -27,6 +27,14 @@ class PlayerController extends PluginController {
         
         $livestream_config = LiveStream::getConfig();
         $livestream = LiveStream::find(Context::getId());
+        
+        if (!$livestream) {
+            $livestream = new LiveStream();
+            $livestream->seminar_id = Context::getId();
+            $livestream->mode = MODE_DEFAULT;
+            $livestream->store();
+        }
+
         $mode = $livestream->mode;
 
         if ($this->plugin->checkOpenCast(Context::getId()) && $livestream_config['oc_player_url']) {
