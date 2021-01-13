@@ -23,6 +23,45 @@
                 </div>
             <?endif;?>
         </div>
+        <? if($mode == MODE_DEFAULT ): ?>
+            <form class="default" action="<?= PluginEngine::getLink('LiveStreaming/player/toggle_countdown') ?>" method="post">
+                <?= CSRFProtection::tokenTag() ?>
+                <fieldset>
+                    <legend><?= htmlReady(_('Countdown'))?></legend>
+                    <label>
+                        <input type="checkbox"
+                            name="countdown_active"
+                            id="countdown_active"
+                            <? if ($countdown_activated == 1) echo 'checked'; ?>>
+                            <?= _('Countdown zum nächsten LiveStream anzeigen');?>
+                            <?= tooltipIcon(_('Soll ein Countdown zum nächsten LiveStream angezeigt werden?')) ?>
+                    </label>
+                    <div id="livestream_next" <? if ($countdown_activated != 1) echo 'style="display: none;"' ?>>
+                        <label>
+                            <input type="radio" name="manuell" value="0" <? if ($countdown_manuell == 0) echo 'checked'; ?>>
+                            <?= _('Nächster Termin in der Sitzung') . ($sem_next_session ? ': ' . $sem_next_session : '') ?>
+                        </label>
+                        <label>
+                            <input type="radio" name="manuell" value="1" <? if ($countdown_manuell == 1) echo 'checked'; ?>>
+                            <?= _('Manuelle Termineingabe') . ':' ?>
+                        </label>
+                        <label class="col-2">
+                            <?= _('Datum') ?>
+                            <input class="has-date-picker size-s" type="text" name="next_livestream_date"
+                                value="<?= htmlReady(($next_livestream ? date('d.m.Y', $next_livestream) : '')) ?>" <?= ($countdown_manuell == 1 ? 'requiered' : 'disabled' )?>>
+                        </label>
+                        <label class="col-2">
+                            <?= _('Startzeit') ?>
+                            <input class="studip-timepicker size-s" type="text" name="next_livestream_time" <?= ($countdown_manuell == 1 ? 'requiered' : 'disabled' )?>
+                                value="<?= htmlReady(($next_livestream ? date('H:i', $next_livestream) : '')) ?>" placeholder="HH:mm">
+                        </label>
+                    </div>
+                </fieldset>
+                <footer>
+                    <?= Studip\Button::create(_('Speichern'))?>
+                </footer>
+            </form>
+        <?endif;?>    
         <hr>
         <? if($mode == MODE_DEFAULT): ?>
             <?= $this->render_partial('player/_teacher_info') ?>

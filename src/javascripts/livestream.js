@@ -41,7 +41,40 @@ $(function(){
             }
         });
     }
+
+    $(document).on('change', '#countdown_active', function(event) {
+        if ($(event.target).is(':checked')) {
+            $('#livestream_next').show(() => {
+                toggleDateTimeInputAttributes();
+            });
+        } else {
+            $('#livestream_next').hide(() => {
+                toggleDateTimeInputAttributes();
+            });
+        }
+    });
+
+    $(document).on('change', '#livestream_next', function(event) {
+        toggleDateTimeInputAttributes();
+    });
 });
+
+function toggleDateTimeInputAttributes() {
+    var countdown = $('#countdown_active').is(':checked');
+    var manuell = $('input[name="manuell"]:checked').val();
+    if (countdown) {
+        if (manuell == 1) {
+            $('input[name="next_livestream_date"]').removeAttr('disabled').attr('required', true);
+            $('input[name="next_livestream_time"]').removeAttr('disabled').attr('required', true);
+        } else {
+            $('input[name="next_livestream_date"]').removeAttr('required').attr('disabled', true);
+            $('input[name="next_livestream_time"]').removeAttr('required').attr('disabled', true);
+        }
+    } else {
+        $('input[name="next_livestream_date"]').removeAttr('required').attr('disabled', true);
+        $('input[name="next_livestream_time"]').removeAttr('required').attr('disabled', true);
+    }
+}
 
 function getCountdown(end_timestamp) {
     var now = new Date().getTime();
