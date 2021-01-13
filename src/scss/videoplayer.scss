@@ -18,3 +18,22 @@ section {
         }
     }
 }
+#stream_video {
+    width: auto;
+    height: auto;
+    display: block;
+    overflow: hidden;
+    position: relative;
+    z-index: 0;
+}
+
+.zoom-info {
+    color: silver;
+    font-size: x-large;
+    position: absolute;
+    margin: auto;
+    top: 25%;
+    left: 15%;
+    right: 15%;
+    z-index: 1;
+}
