@@ -9,6 +9,3 @@
         <?= $this->render_partial('player/_countdown') ?>
     </section>
 <? endif; ?>
-
-
-

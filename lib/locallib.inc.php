@@ -15,14 +15,13 @@ define('PENDING', 'before');
 define('LIVE', 'current');
 define('REFRESH_INTERVALS', 600); //EACH 10 mins TODO:Add to config (dynamic)
 
-function get_course_session_today($course_id) {
+function get_course_session_from_today($course_id) {
     
     $today_timestamp = strtotime('today midnight');
-    $tomorrow_timestamp = strtotime('tomorrow midnight');
-    $where = "range_id = ? and date BETWEEN ? AND ? ORDER BY date ASC";
-    $todays_session_coursedates = \CourseDate::findBySQL($where, [$course_id, $today_timestamp, $tomorrow_timestamp]);
+    $where = "range_id = ? and date >= ? ORDER BY date ASC";
+    $session_coursedates = \CourseDate::findBySQL($where, [$course_id, $today_timestamp]);
 
-    if (!$todays_session_coursedates) {
+    if (!$session_coursedates) {
         return false;
     } 
 
@@ -30,19 +29,19 @@ function get_course_session_today($course_id) {
 
     $now_timestamp = strtotime('now');
 
-    foreach ($todays_session_coursedates as $todays_session_coursedate) {
+    foreach ($session_coursedates as $session_coursedate) {
 
 
-        if (!$capture_agent = GetOCCaptureAgent($todays_session_coursedate->termin_id)) {
+        if (!$capture_agent = GetOCCaptureAgent($session_coursedate->termin_id)) {
             continue;
         }
         
-        $start_session_timestamp =  $todays_session_coursedate->date;
+        $start_session_timestamp =  $session_coursedate->date;
     
-        $end_session_timestamp =  $todays_session_coursedate->end_time;
+        $end_session_timestamp =  $session_coursedate->end_time;
 
         $status = '';
-        $schedule_data['termin'] = $todays_session_coursedate;
+        $schedule_data['termin'] = $session_coursedate;
         $schedule_data['capture_agent'] = $capture_agent;
         if (!isset($todays_scheduled_sessions[PENDING]) && $now_timestamp < $start_session_timestamp) // Upcoming
         {

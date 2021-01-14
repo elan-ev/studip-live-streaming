@@ -72,7 +72,7 @@ class PlayerController extends PluginController {
 
         if ($mode == MODE_OPENCAST) {
             $refresh_in_seconds = REFRESH_INTERVALS;
-            if ($todays_session = get_course_session_today(Context::getId())) {
+            if ($todays_session = get_course_session_from_today(Context::getId())) {
                 if (isset($todays_session[LIVE])) {
                     $this->show_live_countdown = true;
                     $refresh_in_seconds = $todays_session[LIVE]['refresh_seconds'];
@@ -84,7 +84,7 @@ class PlayerController extends PluginController {
                         $refresh_in_seconds = $todays_session[PENDING]['refresh_seconds'];
                     }
                     $this->show_countdown = true;
-                    $this->upcoming_termin = $todays_session[PENDING]['termin'];
+                    $this->upcoming_termin = $todays_session[PENDING]['termin']->date;
                 }
                 $this->response->add_header('Refresh', $refresh_in_seconds);
             } else {
@@ -148,23 +148,25 @@ class PlayerController extends PluginController {
             // countdown
             if (intval($livestream->countdown_activated) == 1) {
                 if ($livestream->countdown_timestamp > 0) {
-                    $this->livestream_termin = $livestream->countdown_timestamp;
+                    $this->upcoming_termin = $livestream->countdown_timestamp;
                 } else {
                     $livestream_datetime = explode(" -", Seminar::getInstance(Context::getId())->getNextDate())[0];
                     $livestream_datetime = explode(", ", $livestream_datetime)[1];
-                    $this->livestream_termin = strtotime($livestream_datetime);
+                    $this->upcoming_termin = strtotime($livestream_datetime);
                 }
 
-                if ($this->livestream_termin < strtotime('now')) {
-                    $this->livestream_termin = 0;
+                if ($this->upcoming_termin < strtotime('now')) {
+                    $this->upcoming_termin = 0;
                 }
+
+                $this->show_countdown = $this->upcoming_termin ? true : false;
             }            
         } else {
 
             $refresh_in_seconds = REFRESH_INTERVALS;
             if (!$livestream_config['oc_player_url'] ||
                     !$this->plugin->checkOpenCast(Context::getId()) ||
-                        !$todays_session = get_course_session_today(Context::getId())) {
+                        !$todays_session = get_course_session_from_today(Context::getId())) {
                 $error = true;
             }
 
@@ -180,7 +182,7 @@ class PlayerController extends PluginController {
                     $refresh_in_seconds = $todays_session[PENDING]['refresh_seconds'];
                 }
                 $this->show_countdown = true;
-                $this->upcoming_termin = $todays_session[PENDING]['termin'];
+                $this->upcoming_termin = $todays_session[PENDING]['termin']->date;
             }
             $this->response->add_header('Refresh', $refresh_in_seconds);
         }

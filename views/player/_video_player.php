@@ -5,11 +5,6 @@
                 <h5 class="livestream-countdown" data-end="<?= $termin->end_time?>">00:00:00</h5>
             </div>
         <? endif; ?>
-        <? if ($livestream_termin): ?>
-            <div class="livestream-countdown-container">
-                <h5 class="livestream-countdown" data-end="<?= $livestream_termin ?>">00:00:00</h5>
-            </div>
-        <? endif; ?>
         <video 
             id="stream_video" 
             class="video-js vjs-default-skin" 
