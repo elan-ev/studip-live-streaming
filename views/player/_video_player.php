@@ -1,43 +1,67 @@
 <section>
     <div class="video-container">
-        <? if($termin): ?>
-            <div class="livestream-countdown-container">
-                <h5 class="livestream-countdown" data-end="<?= $termin->end_time?>">00:00:00</h5>
+        <div class="video-countdown-container">
+            <? if($termin): ?>
+                <div class="livestream-countdown-container">
+                    <h5 class="livestream-countdown" data-end="<?= $termin->end_time?>">00:00:00</h5>
+                </div>
+            <? endif; ?>
+            <? if ($livestream_termin): ?>
+                <div class="livestream-countdown-container">
+                    <h5 class="livestream-countdown" data-end="<?= $livestream_termin ?>">00:00:00</h5>
+                </div>
+            <? endif; ?>
+            <video 
+                id="stream_video" 
+                class="video-js vjs-default-skin" 
+                data-setup='{
+                    "fluid": true,
+                    "autoplay": true,
+                    "preload": true,
+                    "controls": true       
+                }'
+            >
+                <source id="video_source_1" src="https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8" type='application/x-mpegurl' />
+                <source id="video_source_1" src="<?= $player_url ?>" type='application/x-mpegurl' />
+                <source id="video_source_2" src="<?= $player_url ?>" type='application/dash+xml' />
+            </video>
+            <div class="new-player">
+                <?= \Icon::create('refresh', 'clickable', ['size' => '20', 
+                                    'title' => $plugin->_('Player neu laden')])->asInput([
+                                        'id' => 'player-reload-btn', 
+                                        'class' => 'reload-player-btn']) ?>
+                <p><?= $plugin->_('Falls Sie eine Fehlermeldung erhalten hat das 
+                                    Live-Streaming wahrscheinlich noch nicht begonnen. 
+                                    Der Player wird automatisch alle 30 Sekunden aktualisiert. 
+                                    Sollte dies nicht der Fall sein können Sie den Player manuell neu laden.') ?></p>
             </div>
-        <? endif; ?>
-        <? if ($livestream_termin): ?>
-            <div class="livestream-countdown-container">
-                <h5 class="livestream-countdown" data-end="<?= $livestream_termin ?>">00:00:00</h5>
-            </div>
-        <? endif; ?>
-        <video 
-            id="stream_video" 
-            class="video-js vjs-default-skin" 
-            data-setup='{
-                "fluid": true,
-                "autoplay": true,
-                "preload": true,
-                "controls": true       
-            }'
-        >
-            <source id="video_source_1" src="<?= $player_url ?>" type='application/x-mpegurl' />
-            <source id="video_source_2" src="<?= $player_url ?>" type='application/dash+xml' />
-        </video>
-        <div class="new-player">
-            <?= \Icon::create('refresh', 'clickable', ['size' => '20', 'title' => $plugin->_('Player neu laden')])->asInput(['id' => 'player-reload-btn', 'class' => 'reload-player-btn']) ?>
-            <p><?= $plugin->_('Falls Sie eine Fehlermeldung erhalten hat das Live-Streaming wahrscheinlich noch nicht begonnen. Der Player wird automatisch alle 30 Sekunden aktualisiert. 
-                                Sollte dies nicht der Fall sein können Sie den Player manuell neu laden.') ?></p>
         </div>
-    </div>
-    
-    <div class="zoom-info"><?= $plugin->_('Um das Video zu vergrößern/verkleinern, 
+        <? if (Navigation::hasItem("/community/blubber") && $mode == MODE_DEFAULT && $thread): ?>
+        <div class="chatbox-container hide-chat">
+            <input type="hidden" id="base_url" value="plugins.php/blubber/streams/">
+			<input type="hidden" id="context_id" value="<?= htmlReady($thread->getId()) ?>">
+			<input type="hidden" id="stream" value="thread">
+			<input type="hidden" id="user_id" value="<?= htmlReady($GLOBALS['user']->id) ?>">
+			<input type="hidden" id="stream_time" value="<?= time() ?>">
+			<input type="hidden" id="browser_start_time" value="">
+			<input type="hidden" id="orderby" value="mkdate">
+			<div id="editing_question" style="display: none;"><?= _("Wollen Sie den Beitrag wirklich bearbeiten?") ?></div>
+			
+			<ul id="blubber_threads" class="coursestream singlethread" aria-live="polite" aria-relevant="additions">
+				<?= $this->render_partial("player/_blubber.php", compact("thread")) ?>
+			</ul>
+		</div>
+		<? endif ?>
+	</div>
+			
+			<div class="zoom-info"><?= $plugin->_('Um das Video zu vergrößern/verkleinern, 
                                         halten Sie die Shift-Taste gedrückt und 
                                         benutzen Sie das Mausrad, oder nutzen Sie 
                                         die Funktionen in der Kontrollzeile') ?></div>
                                         
-    <div class="livestreaming-zoomin" title="<?= $plugin->_('Vergrößern') ?>"></div>
-    <div class="livestreaming-zoomout" title="<?= $plugin->_('Verkleinern') ?>"></div>
-    <div class="livestreaming-zoomdefault" title="<?= $plugin->_('Standardgröße wiederherstellen') ?>"></div>
+    <?= \Icon::create('search+add', 'info_alt', ['title' => _('Vergrößern'), 'class' => 'livestreaming-zoomin'])->asImg(16) ?>
+    <?= \Icon::create('search+remove', 'info_alt', ['title' => _('Verkleinern'), 'class' => 'livestreaming-zoomout'])->asImg(16) ?>
+    <?= \Icon::create('search', 'info_alt', ['title' => _('Standardgröße wiederherstellen'), 'class' => 'livestreaming-zoomdefault'])->asImg(16) ?>
     
     <script>
         let PLAYER_URL = "<?= $player_url ?>";
@@ -200,8 +224,47 @@
             /* MISC FUNCTIONS */
             /******************/
             
+            // show livechat if video works only
+            player.on('canplay', function(event) {
+                if ($('.chatbox-container').hasClass('hide-chat')) {
+                    $('.chatbox-container').removeClass('hide-chat');
+                }
+                
+                // automatically scroll to bottom so new messages are always shown
+                // unless user has scrolled up to read older messages
+                var container = $('.chatbox-container');
+                var intervalID, scrollToBottomInterval;
+                intervalID = scrollToBottomInterval = setScrollInterval(container);
+                
+                container.on('scroll', function(event) {
+                    if (intervalID !== 0 && 
+                    container.scrollTop() + container[0].clientHeight < container[0].scrollHeight - 40) {
+                    
+                        clearInterval(scrollToBottomInterval);
+                        console.log("I am in clear! " + scrollToBottomInterval);
+                        intervalID = 0;
+                    }
+                    
+                    if (intervalID === 0 &&
+                    container.scrollTop() + container[0].clientHeight === container[0].scrollHeight) {
+                        intervalID = scrollToBottomInterval = setScrollInterval(container);
+                    }
+                });
+                
+            });
+            
+            function setScrollInterval(container) {
+                return setInterval(function() {
+                    container.scrollTop(container[0].scrollHeight);
+                }, 100);
+            };
+            
             // reload player every 30 seconds
             player.on('error', function(event) {
+                if (!$('.chatbox-container').hasClass('hide-chat')) {
+                    $('.chatbox-container').addClass('hide-chat');
+                }
+            
                 setTimeout(() => { 
                     player.reset();
                     player.src([
