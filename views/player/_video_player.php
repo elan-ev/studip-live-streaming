@@ -233,21 +233,19 @@
                 // automatically scroll to bottom so new messages are always shown
                 // unless user has scrolled up to read older messages
                 var container = $('.chatbox-container');
-                var intervalID, scrollToBottomInterval;
-                intervalID = scrollToBottomInterval = setScrollInterval(container);
+                var scrollToBottomInterval = setScrollInterval(container);
                 
                 container.on('scroll', function(event) {
-                    if (intervalID !== 0 && 
+                    if (scrollToBottomInterval === 0 &&
+                    container.scrollTop() + container[0].clientHeight === container[0].scrollHeight) {
+                        scrollToBottomInterval = setScrollInterval(container);
+                    }
+                    
+                    if (scrollToBottomInterval !== 0 && 
                     container.scrollTop() + container[0].clientHeight < container[0].scrollHeight - 40) {
                     
                         clearInterval(scrollToBottomInterval);
-                        console.log("I am in clear! " + scrollToBottomInterval);
-                        intervalID = 0;
-                    }
-                    
-                    if (intervalID === 0 &&
-                    container.scrollTop() + container[0].clientHeight === container[0].scrollHeight) {
-                        intervalID = scrollToBottomInterval = setScrollInterval(container);
+                        scrollToBottomInterval = 0;
                     }
                 });
                 
