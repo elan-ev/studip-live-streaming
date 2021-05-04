@@ -47,7 +47,7 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
     }
 
     /**
-    * Returns the tab navigation for the LiveStream plugin in the given course.
+    * Returns the tab navigation for the LiveStreaming plugin in the given course.
     *
     * @param $course_id the given course ID
     */
@@ -79,7 +79,6 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
     public function perform($unconsumed_path)
     {
         PageLayout::addStylesheet($this->getPluginURL() . '/assets/css/livestream.css');
-        PageLayout::addStylesheet($this->getPluginURL() . '/assets/css/livestreamzoom.css');
         PageLayout::addScript($this->getPluginURL() . '/assets/javascripts/livestream.js');
 
         parent::perform($unconsumed_path);

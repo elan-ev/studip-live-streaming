@@ -5,11 +5,6 @@
                 <h5 class="livestream-countdown" data-end="<?= $termin->end_time?>">00:00:00</h5>
             </div>
         <? endif; ?>
-        <? if ($livestream_termin): ?>
-            <div class="livestream-countdown-container">
-                <h5 class="livestream-countdown" data-end="<?= $livestream_termin ?>">00:00:00</h5>
-            </div>
-        <? endif; ?>
         <video 
             id="stream_video" 
             class="video-js vjs-default-skin" 
@@ -35,9 +30,23 @@
                                         benutzen Sie das Mausrad, oder nutzen Sie 
                                         die Funktionen in der Kontrollzeile') ?></div>
                                         
-    <div class="livestreaming-zoomin" title="<?= $plugin->_('Vergrößern') ?>"></div>
-    <div class="livestreaming-zoomout" title="<?= $plugin->_('Verkleinern') ?>"></div>
-    <div class="livestreaming-zoomdefault" title="<?= $plugin->_('Standardgröße wiederherstellen') ?>"></div>
+    <?= \Icon::create('search+add', 'info_alt', ['title' => _('Vergrößern'), 'class' => 'livestreaming-zoomin'])->asImg(16) ?>
+    <?= \Icon::create('search+remove', 'info_alt', ['title' => _('Verkleinern'), 'class' => 'livestreaming-zoomout'])->asImg(16) ?>
+    <?= \Icon::create('search', 'info_alt', ['title' => _('Standardgröße wiederherstellen'), 'class' => 'livestreaming-zoomdefault'])->asImg(16) ?>
+
+    <style>
+        .livestreaming-zoomin-cursor {
+            cursor: url('<?= \Icon::create('search+add', 'info_alt')->asImagePath() ?>'), auto;
+        }
+
+        .livestreaming-zoomout-cursor {
+            cursor: url('<?= \Icon::create('search+remove', 'info_alt')->asImagePath() ?>'), auto;
+        }
+
+        .livestreaming-zoomdefault-cursor {
+            cursor: url('<?= \Icon::create('search', 'info_alt')->asImagePath() ?>'), auto;
+        }
+    </style>
     
     <script>
         let PLAYER_URL = "<?= $player_url ?>";
@@ -270,4 +279,3 @@
         }
     </script>
 </section>
-

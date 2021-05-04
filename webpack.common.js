@@ -50,7 +50,11 @@ module.exports = {
                 test: /\.(png|woff|woff2|eot|ttf|svg)$/,
                 loader: 'file-loader',
                 options: {
+<<<<<<< HEAD
                     name: '[folder][name].[ext]?[contenthash]',
+=======
+                    name: '[name].[ext]?[contenthash]',
+>>>>>>> main
                     outputPath: 'fonts',
                     publicPath: '../fonts',
                 },
@@ -64,4 +68,8 @@ module.exports = {
         }),
         
     ]
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> main
