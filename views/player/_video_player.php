@@ -23,6 +23,21 @@
             <p><?= $plugin->_('Falls Sie eine Fehlermeldung erhalten hat das Live-Streaming wahrscheinlich noch nicht begonnen. Der Player wird automatisch alle 30 Sekunden aktualisiert. 
                                 Sollte dies nicht der Fall sein können Sie den Player manuell neu laden.') ?></p>
         </div>
+        <? if (Navigation::hasItem("/community/blubber") && $mode == MODE_DEFAULT && $livechat): ?>
+        <div id="blubber-index">
+            <div class="blubber_panel"
+                 data-active_thread="<?= htmlReady($livechat->getId()) ?>"
+                 data-thread_data="<?= htmlReady(json_encode($livechat->getJSONData() ?: ['thread_posting' => []])) ?>"
+                 data-threads_more_down=""
+                 :class="waiting ? 'waiting' : ''">
+
+                <div id="blubber_stream_container">
+                    <blubber-thread :thread_data="thread_data"></blubber-thread>
+                </div>
+            </div>
+        </div>
+        <? endif ?>
+        
     </div>
     
     <div class="zoom-info"><?= $plugin->_('Um das Video zu vergrößern/verkleinern, 

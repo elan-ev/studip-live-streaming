@@ -72,7 +72,6 @@ class PlayerController extends PluginController {
 
         if ($mode == MODE_OPENCAST) {
             $refresh_in_seconds = REFRESH_INTERVALS;
-
             if ($todays_session = get_course_session_from_today(Context::getId())) {
                 if (isset($todays_session[LIVE])) {
                     $this->show_live_countdown = true;
@@ -146,6 +145,7 @@ class PlayerController extends PluginController {
         if ($mode == MODE_DEFAULT) {
             $this->show_player = true;
             $this->player_url = str_replace(URLPLACEHOLDER, Context::getId(), $livestream_config['player_url']);
+            $this->mode = $mode;
             // countdown
             if (intval($livestream->countdown_activated) == 1) {
                 if ($livestream->countdown_timestamp > 0) {
@@ -161,7 +161,36 @@ class PlayerController extends PluginController {
                 }
 
                 $this->show_countdown = $this->upcoming_termin ? true : false;
-            }            
+            }
+            
+            $threads = BlubberThread::findBySeminar(Context::getId());
+            $thread_exists = false;
+            $thread_id = null;
+
+            foreach ($threads as $thread) {
+                if ($thread->user_id == 'livestream') {
+                    $thread_exists = true;
+                    $thread_id = $thread->thread_id;
+                    $this->livechat = BlubberThread::find($thread_id);
+                }
+            }
+
+            if (!$thread_exists) {
+                
+                $thread = BlubberThread::create([
+                    'context_type'      => 'course',
+                    'context_id'        => Context::getId(),
+                    'user_id'           => 'livestream',
+                    'external_contact'  => 0,
+                    'display_class'     => null,
+                    'visible_in_stream' => 1,
+                    'commentable'       => 1,
+                    'content'           => ''
+                ]);
+                
+                $this->livechat = $thread;
+            }
+            
         } else {
 
             $refresh_in_seconds = REFRESH_INTERVALS;
@@ -281,4 +310,5 @@ class PlayerController extends PluginController {
             $time_zone
         );
     }
+    
 }

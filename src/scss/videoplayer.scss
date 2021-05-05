@@ -18,7 +18,6 @@ section {
         }
     }
 }
-
 #stream_video {
     width: auto;
     height: auto;
@@ -37,4 +36,14 @@ section {
     left: 15%;
     right: 15%;
     z-index: 1;
+}
+
+.blubber_panel {
+    max-height: 400px;
+    overflow: auto;
+}
+
+#blubber_stream_container {
+    width: 100%;
+    margin: 0 auto;
 }
