@@ -210,6 +210,12 @@ class PlayerController extends PluginController {
         if ($this->show_player == true) {
             PageLayout::addStylesheet($this->plugin->getPluginURL() . '/assets/css/videoplayer.css');
             PageLayout::addScript($this->plugin->getPluginURL() . '/assets/javascripts/videoplayer.js');
+            
+            if (StudipVersion::olderThan('4.5')) {
+                PageLayout::addScript("{$blubber->getPluginURL()}/assets/javascripts/autoresize.jquery.min.js");
+                PageLayout::addScript("{$blubber->getPluginURL()}/assets/javascripts/blubber.js");
+                PageLayout::addScript("{$blubber->getPluginURL()}/assets/javascripts/formdata.js");
+            }
         }
 
         if ($error) {

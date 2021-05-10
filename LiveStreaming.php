@@ -78,6 +78,11 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
     
     public function perform($unconsumed_path)
     {
+        if (StudipVersion::olderThan('4.5')) {
+            $blubber = new Blubber();
+            $blubber->addStylesheet('assets/stylesheets/blubber.less');
+        }
+    
         PageLayout::addStylesheet($this->getPluginURL() . '/assets/css/livestream.css');
         PageLayout::addScript($this->getPluginURL() . '/assets/javascripts/livestream.js');
 

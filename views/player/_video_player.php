@@ -246,6 +246,14 @@
                 <? endif ?>
             });
             
+            <? if (StudipVersion::olderThan('4.5')): ?>
+                function setScrollInterval(container) {
+                    return setInterval(function() {
+                        container.scrollTop(container[0].scrollHeight);
+                    }, 100);
+                };
+            <? endif ?>
+            
             // reload player every 30 seconds
             player.on('error', function(event) {
                 setTimeout(() => { 
