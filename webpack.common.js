@@ -7,8 +7,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 module.exports = {
     entry: {
         "livestream": [srcPath + '/javascripts/livestream.js', srcPath + '/scss/livestream.scss'],
-        "videoplayer": [srcPath + '/javascripts/videoplayer.js', srcPath + '/scss/videoplayer.scss'],
-        "livestreamzoom": [srcPath + '/scss/livestreamZoom.scss']
+        "videoplayer": [srcPath + '/javascripts/videoplayer.js', srcPath + '/scss/videoplayer.scss']
     },
     output: {
         filename: 'javascripts/[name].js',
@@ -50,11 +49,7 @@ module.exports = {
                 test: /\.(png|woff|woff2|eot|ttf|svg)$/,
                 loader: 'file-loader',
                 options: {
-<<<<<<< HEAD
                     name: '[folder][name].[ext]?[contenthash]',
-=======
-                    name: '[name].[ext]?[contenthash]',
->>>>>>> main
                     outputPath: 'fonts',
                     publicPath: '../fonts',
                 },
@@ -68,8 +63,4 @@ module.exports = {
         }),
         
     ]
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> main

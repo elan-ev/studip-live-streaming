@@ -146,12 +146,15 @@ class PlayerController extends PluginController {
             $this->show_player = true;
             $this->player_url = str_replace(URLPLACEHOLDER, Context::getId(), $livestream_config['player_url']);
             $this->mode = $mode;
+            
             // countdown
+            $livestream = LiveStream::find(Context::getId());
+            $next_date_livestream = Seminar::getInstance(Context::getId())->getNextDate();
             if (intval($livestream->countdown_activated) == 1) {
                 if ($livestream->countdown_timestamp > 0) {
                     $this->upcoming_termin = $livestream->countdown_timestamp;
                 } else {
-                    $livestream_datetime = explode(" -", Seminar::getInstance(Context::getId())->getNextDate())[0];
+                    $livestream_datetime = explode(" -", $next_date_livestream)[0];
                     $livestream_datetime = explode(", ", $livestream_datetime)[1];
                     $this->upcoming_termin = strtotime($livestream_datetime);
                 }
@@ -163,32 +166,18 @@ class PlayerController extends PluginController {
                 $this->show_countdown = $this->upcoming_termin ? true : false;
             }
             
-            $threads = BlubberThread::findBySeminar(Context::getId());
-            $thread_exists = false;
-            $thread_id = null;
-
-            foreach ($threads as $thread) {
-                if ($thread->user_id == 'livestream') {
-                    $thread_exists = true;
-                    $thread_id = $thread->thread_id;
-                    $this->livechat = BlubberThread::find($thread_id);
-                }
-            }
-
-            if (!$thread_exists) {
-                
-                $thread = BlubberThread::create([
-                    'context_type'      => 'course',
-                    'context_id'        => Context::getId(),
-                    'user_id'           => 'livestream',
-                    'external_contact'  => 0,
-                    'display_class'     => null,
-                    'visible_in_stream' => 1,
-                    'commentable'       => 1,
-                    'content'           => ''
-                ]);
-                
-                $this->livechat = $thread;
+            // format date to d.m.Y to identify specific chat for the current stream
+            $next_date_formatted = explode(" ", explode(", ", $next_date_livestream)[1])[0];
+            
+            if (StudipVersion::olderThan('4.5')) {
+                $this->thread           = $this->getBlubberThreadOldStudip($next_date_formatted);
+                $this->course_id        = Context::getId();
+	            $this->single_thread    = true;
+	            BlubberPosting::$course_hashes = (
+	            	$this->thread['user_id'] !== $this->thread['Seminar_id'] ? $this->thread['Seminar_id'] : false
+	            );
+            } else {
+                $this->thread = $this->getBlubberThread($next_date_formatted);
             }
             
         } else {
@@ -309,6 +298,90 @@ class PlayerController extends PluginController {
             $date_value . ' ' . $time_value,
             $time_zone
         );
+    }
+    
+    /**
+    * Finds the blubber thread corresponding to the specific livestream
+    * identified by date. Creates a blubber thread if it does not exist.
+    *
+    * @param string $formatted_date a date in the format d.m.Y
+    *
+    * @return BlubberThread
+    */
+    private function getBlubberThread($formatted_date)
+    {
+        $threads = BlubberThread::findBySeminar(Context::getId());
+        $thread_exists = false;
+        $thread_id = null;
+        
+        $return_thread = null;
+        
+        $livestream_user_id = 'Livestream_' . $formatted_date;
+
+        foreach ($threads as $thread) {
+            if ($thread->user_id == $livestream_user_id) {
+                $thread_exists = true;
+                $thread_id = $thread->thread_id;
+                $return_thread = BlubberThread::find($thread_id);
+            }
+        }
+
+        if (!$thread_exists) {
+            
+            $thread = BlubberThread::create([
+                'context_type'      => 'course',
+                'context_id'        => Context::getId(),
+                'user_id'           => $livestream_user_id,
+                'external_contact'  => 0,
+                'display_class'     => null,
+                'visible_in_stream' => 1,
+                'commentable'       => 1,
+                'content'           => ''
+            ]);
+            
+            $return_thread = $thread;
+        }
+        
+        return $return_thread;
+        
+    }
+    
+    /**
+    * Finds the blubber thread corresponding to the specific livestream
+    * identified by date for studip versions older than 4.5. 
+    * Creates a blubber thread if it does not exist.
+    *
+    * @param string $formatted_date a date in the format d.m.Y
+    *
+    * @return BlubberPosting
+    */
+    private function getBlubberThreadOldStudip($formatted_date)
+    {
+        $return_thread = null;
+    
+        $thread = BlubberPosting::findBySQL(
+        	"Seminar_id = ? AND user_id = ?", 
+        	[Context::getId(), 'Livestream_' . $formatted_date]
+        );
+
+        if (!$thread) {
+            BlubberPosting::$course_hashes = Context::getId();
+            
+            $thread = new BlubberPosting();
+            $thread['seminar_id'] = Context::getId();
+            $thread['context_type'] = 'course';
+            $thread['parent_id'] = 0;
+            $thread['user_id'] = 'Livestream_' . $formatted_date;
+            $thread['description'] = $this->plugin->_('Schreib was, frag was.');
+            $thread->store();
+        }
+        
+        $return_thread = BlubberPosting::findBySQL(
+        	"Seminar_id = ? AND user_id = ?", 
+        	[Context::getId(), 'Livestream_' . $formatted_date]
+        )[0];
+	    
+	    return $return_thread;
     }
     
 }

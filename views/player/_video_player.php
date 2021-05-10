@@ -15,6 +15,7 @@
                 "controls": true       
             }'
         >
+            <source id="video_source_1" src="https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8" type='application/x-mpegurl' />
             <source id="video_source_1" src="<?= $player_url ?>" type='application/x-mpegurl' />
             <source id="video_source_2" src="<?= $player_url ?>" type='application/dash+xml' />
         </video>
@@ -23,19 +24,11 @@
             <p><?= $plugin->_('Falls Sie eine Fehlermeldung erhalten hat das Live-Streaming wahrscheinlich noch nicht begonnen. Der Player wird automatisch alle 30 Sekunden aktualisiert. 
                                 Sollte dies nicht der Fall sein können Sie den Player manuell neu laden.') ?></p>
         </div>
-        <? if (Navigation::hasItem("/community/blubber") && $mode == MODE_DEFAULT && $livechat): ?>
-        <div id="blubber-index">
-            <div class="blubber_panel"
-                 data-active_thread="<?= htmlReady($livechat->getId()) ?>"
-                 data-thread_data="<?= htmlReady(json_encode($livechat->getJSONData() ?: ['thread_posting' => []])) ?>"
-                 data-threads_more_down=""
-                 :class="waiting ? 'waiting' : ''">
-
-                <div id="blubber_stream_container">
-                    <blubber-thread :thread_data="thread_data"></blubber-thread>
-                </div>
-            </div>
-        </div>
+        
+        <? if (StudipVersion::olderThan('4.5')): ?>
+            <?= $this->render_partial("player/_livechat_studip4.4.php") ?>
+        <? else: ?>
+            <?= $this->render_partial("player/_livechat_studip4.5up.php") ?>
         <? endif ?>
         
     </div>
@@ -223,6 +216,35 @@
             /******************/
             /* MISC FUNCTIONS */
             /******************/
+            
+            player.on('canplay', function(event) {
+                if ($('.chatbox-container').hasClass('hide-chat')) {
+                    $('.chatbox-container').removeClass('hide-chat');
+                }
+                
+                <? if (StudipVersion::olderThan('4.5')): ?>
+                // automatically scroll to bottom so new messages are always shown
+                // unless user has scrolled up to read older messages
+                var container = $('.chatbox-container');
+                var intervalID, scrollToBottomInterval;
+                intervalID = scrollToBottomInterval = setScrollInterval(container);
+                
+                container.on('scroll', function(event) {
+                    if (intervalID !== 0 && 
+                    container.scrollTop() + container[0].clientHeight < container[0].scrollHeight - 40) {
+                    
+                        clearInterval(scrollToBottomInterval);
+                        console.log("I am in clear! " + scrollToBottomInterval);
+                        intervalID = 0;
+                    }
+                    
+                    if (intervalID === 0 &&
+                    container.scrollTop() + container[0].clientHeight === container[0].scrollHeight) {
+                        intervalID = scrollToBottomInterval = setScrollInterval(container);
+                    }
+                });
+                <? endif ?>
+            });
             
             // reload player every 30 seconds
             player.on('error', function(event) {
