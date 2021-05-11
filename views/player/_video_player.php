@@ -221,6 +221,9 @@
                 if ($('.chatbox-container').hasClass('hide-chat')) {
                     $('.chatbox-container').removeClass('hide-chat');
                 }
+                if ($('#blubber-index').hasClass('hide-chat')) {
+                    $('#blubber-index').removeClass('hide-chat');
+                }
                 
                 <? if (StudipVersion::olderThan('4.5')): ?>
                 // automatically scroll to bottom so new messages are always shown
