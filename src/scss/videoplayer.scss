@@ -16,6 +16,14 @@ section {
             margin: 1em;
             text-align: center;
         }
+
+        #blubber_threads > .posting > .writer > textarea{
+            width: calc(100% - 20px) !important;
+        }
+
+        .blubber_thread .writer > textarea {
+            width: calc(100% - 140px) !important;
+        }
     }
 }
 #stream_video {
