@@ -56,6 +56,14 @@ section {
     margin: 0 auto;
 }
 
+.chatbox-container {
+    margin: auto;
+    width: 100%;
+	max-height: 350px;
+	overflow: scroll;
+	border-style: none;
+}
+
 .hide-chat {
     display: none;
 }

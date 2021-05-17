@@ -54,6 +54,13 @@ class PlayerController extends PluginController {
             $this->player_url       = str_replace(URLPLACEHOLDER, Context::getId(), $livestream_config['player_url']);
 
             $this->countdown_activated = intval($livestream->countdown_activated);
+            
+            $livechat = 0;
+            $options = json_decode($livestream->options);
+            if ($options && $options->livechat) {
+                $livechat = intval($options->livechat->active);
+            }
+            $this->chat_active = $livechat;
 
             if ($this->countdown_activated == 1) {
                 if ($livestream->countdown_timestamp > 0) {
@@ -166,18 +173,25 @@ class PlayerController extends PluginController {
                 $this->show_countdown = $this->upcoming_termin ? true : false;
             }
             
-            // format date to d.m.Y to identify specific chat for the current stream
-            $next_date_formatted = explode(" ", explode(", ", $next_date_livestream)[1])[0];
+            // only load chat if it is activated in teacher settings
+            $options = json_decode($livestream->options);
+            $this->chat_active = false;
             
-            if (StudipVersion::olderThan('4.5')) {
-                $this->thread           = $this->getBlubberThreadOldStudip($next_date_formatted);
-                $this->course_id        = Context::getId();
-	            $this->single_thread    = true;
-	            BlubberPosting::$course_hashes = (
-	            	$this->thread['user_id'] !== $this->thread['Seminar_id'] ? $this->thread['Seminar_id'] : false
-	            );
-            } else {
-                $this->thread = $this->getBlubberThread($next_date_formatted);
+            if ($options->livechat->active) {
+                $this->chat_active = true;
+                // format date to d.m.Y to identify specific chat for the current stream
+                $next_date_formatted = explode(" ", explode(", ", $next_date_livestream)[1])[0];
+                
+                if (StudipVersion::olderThan('4.5')) {
+                    $this->thread           = $this->getBlubberThreadOldStudip($next_date_formatted);
+                    $this->course_id        = Context::getId();
+	                $this->single_thread    = true;
+	                BlubberPosting::$course_hashes = (
+	                	$this->thread['user_id'] !== $this->thread['Seminar_id'] ? $this->thread['Seminar_id'] : false
+	                );
+                } else {
+                    $this->thread = $this->getBlubberThread($next_date_formatted);
+                }
             }
             
         } else {
@@ -265,6 +279,34 @@ class PlayerController extends PluginController {
 
             $livestream->store();
         }
+        $this->redirect('player/teacher');
+    }
+    
+    /**
+    * Toggles the live chat for normal live streaming.
+    */
+    public function toggle_chat_action()
+    {
+        global $perm;
+        if(!$perm->have_studip_perm('tutor', Context::getId())) {
+            throw new AccessDeniedException($this->plugin->_('Sie verfügen nicht über die notwendigen Rechte für diese Aktion'));
+        }
+        CSRFProtection::verifyUnsafeRequest();
+        
+        $livestream = LiveStream::find(Context::getId());
+        $mode = $livestream->mode;
+        
+        if ($mode != MODE_DEFAULT) {
+            PageLayout::postError($this->plugin->_('Mode ist ungültig.'));
+        } else {
+            $chat_active = Request::get('chat_active') ? 1 : 0;
+            $options = json_decode($livestream->options);
+            $options->livechat->active = $chat_active;
+            $livestream->options = json_encode($options);
+            
+            $livestream->store();
+        }
+        
         $this->redirect('player/teacher');
     }
 

@@ -175,6 +175,9 @@
          if ($('.chatbox-container').hasClass('hide-chat')) {
              $('.chatbox-container').removeClass('hide-chat');
          }
+         if ($('#blubber-index').hasClass('hide-chat')) {
+            $('#blubber-index').removeClass('hide-chat');
+         }
          
          if (STUDIP_VERSION < 4.5) {
              // automatically scroll to bottom so new messages are always shown
