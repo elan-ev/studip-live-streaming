@@ -38,7 +38,7 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
         }
         
         // set up blubber updating so new postings are automatically loaded
-        if (UpdateInformation::isCollecting()) {
+        if (StudipVersion::olderThan('4.5') && UpdateInformation::isCollecting()) {
             $data = Request::getArray("page_info");
             if (isset($data['Blubber'])) {
                 $output = array();
