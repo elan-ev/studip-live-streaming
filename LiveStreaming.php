@@ -10,7 +10,7 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  */
-require_once 'lib/locallib.inc.php';
+require_once __DIR__ . '/lib/locallib.inc.php';
 
 class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
 {
@@ -71,7 +71,7 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
                     );
                 }
                 UpdateInformation::setInformation("Blubber.getNewPosts", $output);
-                
+                UpdateInformation::setInformation("Blubber.handleScrollForLiveStream", count($output['postings']));
                 //Events-Queue:
                 $db = DBManager::get();
                 $events = $db->query(

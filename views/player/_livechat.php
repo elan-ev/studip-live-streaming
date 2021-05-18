@@ -1,5 +1,7 @@
 <? if (StudipVersion::olderThan('4.5')): ?>
 	<div class="chatbox-container hide-chat">
+		<input type="hidden" id="current_posts_count" value="0">
+		<input type="hidden" id="last_check" value="<?= time() ?>">
 		<input type="hidden" id="base_url" value="plugins.php/blubber/streams/">
 		<input type="hidden" id="context_id" value="<?= htmlReady($thread->getId()) ?>">
 		<input type="hidden" id="stream" value="thread">
