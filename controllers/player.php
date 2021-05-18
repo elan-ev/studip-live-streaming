@@ -300,7 +300,7 @@ class PlayerController extends PluginController {
             PageLayout::postError($this->plugin->_('Mode ist ungültig.'));
         } else {
             $chat_active = Request::get('chat_active') ? 1 : 0;
-            $options = json_decode($livestream->options);
+            $options = json_decode($livestream->options) ? json_decode($livestream->options) : new \stdClass();
             $options->livechat->active = $chat_active;
             $livestream->options = json_encode($options);
             

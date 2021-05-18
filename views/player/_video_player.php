@@ -26,11 +26,7 @@
         </div>
         
         <? if (Navigation::hasItem("/community/blubber") && $mode == MODE_DEFAULT && $thread && $chat_active): ?>
-            <? if (StudipVersion::olderThan('4.5')): ?>
-                <?= $this->render_partial("player/_livechat_studip4.4.php") ?>
-            <? else: ?>
-                <?= $this->render_partial("player/_livechat_studip4.5up.php") ?>
-            <? endif ?>
+            <?= $this->render_partial("player/_livechat.php") ?>
         <? endif ?>
         
     </div>
