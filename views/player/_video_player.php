@@ -15,7 +15,6 @@
                 "controls": true       
             }'
         >
-            <source id="video_source_1" src="https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8" type='application/x-mpegurl' />
             <source id="video_source_1" src="<?= $player_url ?>" type='application/x-mpegurl' />
             <source id="video_source_2" src="<?= $player_url ?>" type='application/dash+xml' />
         </video>
