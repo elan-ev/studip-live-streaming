@@ -172,12 +172,10 @@ $(function(){
     /******************/
     
     player.on('canplay', function(event) {
-        if ($('.chatbox-container').hasClass('hide-chat')) {
-            $('.chatbox-container').removeClass('hide-chat');
-        }
-        if ($('#blubber-index').hasClass('hide-chat')) {
-            $('#blubber-index').removeClass('hide-chat');
-        }
+        $('.no-current-stream').hide();
+        $('.video-container').show();
+    
+        showChat();
     });
     
     // reload player every 30 seconds
@@ -195,7 +193,29 @@ $(function(){
                 },
             ]); 
         }, 30000);
+        
+        // show player 5 mins before stream starts and give it time to load 
+        // for 1 more minute after, else display info that there is no stream
+        if (Date.now() / 1000 + 60 >= ($('.termin-info').text() - 5*60)) {
+            showChat();
+        } else {
+            $('.video-container').hide();
+            $('.upcoming-livestream').before($('.no-current-stream'));
+            $('.no-current-stream').show();
+        }
     });
+    
+    // show the chat depending on the studip-version
+    function showChat() {
+        // studip version < 4.5
+        if ($('.chatbox-container').hasClass('hide-chat')) {
+            $('.chatbox-container').removeClass('hide-chat');
+        }
+        // studip version >= 4.5
+        if ($('#blubber-index').hasClass('hide-chat')) {
+            $('#blubber-index').removeClass('hide-chat');
+        }
+    }
 
     // Blubber Modifications
     if (STUDIP_VERSION < 4.5 && STUDIP.Blubber) {

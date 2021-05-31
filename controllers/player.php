@@ -155,7 +155,6 @@ class PlayerController extends PluginController {
             $this->mode = $mode;
             
             // countdown
-            $livestream = LiveStream::find(Context::getId());
             $next_date_livestream = Seminar::getInstance(Context::getId())->getNextDate();
             if (intval($livestream->countdown_activated) == 1) {
                 if ($livestream->countdown_timestamp > 0) {

@@ -1,9 +1,11 @@
 <section>
+    <div class="no-current-stream">
+        <?= MessageBox::info($plugin->_('Derzeit ist kein Live-Stream für diese Sitzung verfügbar.')) ?>
+    </div>
+
     <div class="video-container">
-        <? if($termin): ?>
-            <div class="livestream-countdown-container">
-                <h5 class="livestream-countdown" data-end="<?= $termin->end_time?>">00:00:00</h5>
-            </div>
+        <? if($upcoming_termin): ?>
+            <div class="termin-info" style="display: none;"><?= $upcoming_termin ?></div>
         <? endif; ?>
         <video 
             id="stream_video" 
