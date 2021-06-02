@@ -195,8 +195,12 @@ $(function(){
         }, 30000);
         
         // show player 5 mins before stream starts and give it time to load 
-        // for 1 more minute after, else display info that there is no stream
-        if (Date.now() / 1000 + 60 >= (parseInt($('.termin-info').text()) | 0 - 5*60)) {
+        // for 30 seconds after, else display info that there is no stream
+        // if isNaN(termin_timestamp), means the session is live.
+        var termin_timestamp = parseInt($('#termin-info').val());
+        if (isNaN(termin_timestamp) || (Date.now() / 1000 + 30 >= (termin_timestamp - 5*60))) {
+            $('.no-current-stream').hide();
+            $('.video-container').show();
             showChat();
         } else {
             $('.video-container').hide();

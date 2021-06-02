@@ -39,7 +39,7 @@
                     <div id="livestream_next" <? if ($countdown_activated != 1) echo 'style="display: none;"' ?>>
                         <label>
                             <input type="radio" name="manuell" value="0" <? if ($countdown_manuell == 0) echo 'checked'; ?>>
-                            <?= _('Nächster Termin in der Sitzung') . ($sem_next_session ? ': ' . $sem_next_session : '') ?>
+                            <?= _('Nächster Termin in der Sitzung') . ($sem_next_session ? ': ' . $sem_next_session : ' (' . _('Es gibt keinen Termin verfügbar') . ')') ?>
                         </label>
                         <label>
                             <input type="radio" name="manuell" value="1" <? if ($countdown_manuell == 1) echo 'checked'; ?>>

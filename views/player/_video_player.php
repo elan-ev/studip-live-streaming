@@ -5,7 +5,7 @@
 
     <div class="video-container">
         <? if($upcoming_termin): ?>
-            <div class="termin-info" style="display: none;"><?= $upcoming_termin ?></div>
+            <input type="hidden" id="termin-info" value="<?= $upcoming_termin ?>">
         <? endif; ?>
         <video 
             id="stream_video" 
