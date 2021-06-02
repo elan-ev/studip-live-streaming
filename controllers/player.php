@@ -65,7 +65,7 @@ class PlayerController extends PluginController {
             if ($this->countdown_activated == 1) {
                 if ($livestream->countdown_timestamp > 0) {
                     $this->countdown_manuell = 1;
-                    $this->next_livestream = strtotime($livestream->countdown_timestamp);
+                    $this->next_livestream = $livestream->countdown_timestamp;
                     if ($this->next_livestream < strtotime('now')) {
                         PageLayout::postWarning($this->plugin->_('Die Countdown-Zeit ist abgelaufen. Bitte versuchen Sie, den Termin zu erneuern.'));
                     }
@@ -267,7 +267,7 @@ class PlayerController extends PluginController {
                         $livestream->countdown_activated = 0;
                         $livestream->countdown_timestamp = '0000-00-00 00:00:00';
                     } else {
-                        $livestream->countdown_timestamp = $next_livestream_date;
+                        $livestream->countdown_timestamp = strtotime($next_livestream_date);
                     }
                 } else {
                     $livestream->countdown_timestamp = 0;

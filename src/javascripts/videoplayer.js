@@ -196,7 +196,7 @@ $(function(){
         
         // show player 5 mins before stream starts and give it time to load 
         // for 1 more minute after, else display info that there is no stream
-        if (Date.now() / 1000 + 60 >= ($('.termin-info').text() - 5*60)) {
+        if (Date.now() / 1000 + 60 >= (parseInt($('.termin-info').text()) | 0 - 5*60)) {
             showChat();
         } else {
             $('.video-container').hide();
