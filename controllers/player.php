@@ -261,12 +261,13 @@ class PlayerController extends PluginController {
                 $livestream->countdown_activated = 1;
                 if ($manuell) {
 
-                    $next_livestream_date = $this->getDateTime('next_livestream_date', 'd.m.Y', 'next_livestream_time', 'H:i')->format('Y-m-d H:i:s');
+                    $next_livestream_date = $this->getDateTime('next_livestream_date', 'd.m.Y', 'next_livestream_time', 'H:i');
                     if (!$next_livestream_date) {
                         PageLayout::postError($this->plugin->_('Die Termin- oder Zeitangabe fehlt oder ist ungültig.'));
                         $livestream->countdown_activated = 0;
-                        $livestream->countdown_timestamp = '0000-00-00 00:00:00';
+                        $livestream->countdown_timestamp = 0;
                     } else {
+                        $next_livestream_date = $next_livestream_date->format('Y-m-d H:i:s');
                         $livestream->countdown_timestamp = strtotime($next_livestream_date);
                     }
                 } else {
