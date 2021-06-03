@@ -61,11 +61,10 @@ class PlayerController extends PluginController {
                 $livechat = intval($options->livechat->active);
             }
             $this->chat_active = $livechat;
-
             if ($this->countdown_activated == 1) {
-                if ($livestream->countdown_timestamp > 0) {
+                if (intval($livestream->countdown_timestamp) > 0) {
                     $this->countdown_manuell = 1;
-                    $this->next_livestream = $livestream->countdown_timestamp;
+                    $this->next_livestream = intval($livestream->countdown_timestamp);
                     if ($this->next_livestream < strtotime('now')) {
                         PageLayout::postWarning($this->plugin->_('Die Countdown-Zeit ist abgelaufen. Bitte versuchen Sie, den Termin zu erneuern.'));
                     }
