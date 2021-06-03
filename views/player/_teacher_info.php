@@ -19,14 +19,14 @@
             <span>
                 <strong><?= $plugin->_('Benutzername') ?>:</strong>
                 <br>
-                <?= htmlReady($player_username) ?>
+                <span><?= htmlReady($player_username) ?></span>
             </span>
         </label>
         <label>
             <span>
                 <strong><?= $plugin->_('Passwort') ?>:</strong>
                 <br>
-                <?= htmlReady($player_password) ?>
+                <span><?= htmlReady($player_password) ?></span>
             </span>
         </label>
     </fieldset>
