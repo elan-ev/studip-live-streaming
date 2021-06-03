@@ -200,6 +200,7 @@ $(function(){
         var termin_timestamp = parseInt($('#termin-info').val());
         if (isNaN(termin_timestamp) || (Date.now() / 1000 + 30 >= (termin_timestamp - 5*60))) {
             $('.no-current-stream').hide();
+            $('.upcoming-livestream').hide();
             $('.video-container').show();
             showChat();
         } else {
