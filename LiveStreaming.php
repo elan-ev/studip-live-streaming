@@ -159,7 +159,28 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
     */
     public function getIconNavigation($course_id, $last_visit, $user_id)
     {
-        return NULL;
+        if (!$this->isActivated($course_id)) {
+            return;
+        }
+
+        $perm = $GLOBALS['perm'];
+
+        $landing = 'player/student';
+        if ($perm->have_studip_perm('tutor', $courseId)) {
+            $landing = 'player/teacher';
+        }
+
+        $navigation = new Navigation(
+            'livestreaming',
+            PluginEngine::getURL($this, [], $landing)
+        );
+        
+        $navigation->setImage(
+            Icon::create('video2',
+                    Icon::ROLE_INACTIVE,
+                    ['title' => 'LiveStreaming']
+                ));
+        return $navigation;
     }
 
     /**
