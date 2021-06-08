@@ -445,7 +445,7 @@ class PlayerController extends PluginController {
         $last_session = \CourseDate::findBySQL($where, [Context::getId(), $today_timestamp])[0];
         $now = time();
 
-        return $last_session <= $now && $now <= $last_session->end_time;
+        return $last_session->date <= $now && $now <= $last_session->end_time;
         
     }
     
