@@ -171,6 +171,11 @@ class PlayerController extends PluginController {
                 $this->show_countdown = $this->upcoming_termin ? true : false;
             }
             
+            // is a session currently in progress info for displaying the stream and chat
+            if ($this->isSessionInProgress()) {
+                $this->session_in_progress = 0;
+            }
+            
             // only load chat if it is activated in teacher settings
             $options = json_decode($livestream->options);
             $this->chat_active = false;
@@ -431,6 +436,17 @@ class PlayerController extends PluginController {
         )[0];
 	    
 	    return $return_thread;
+    }
+    
+    private function isSessionInProgress()
+    {
+        $today_timestamp = strtotime('now');
+        $where = "range_id = ? and date <= ? ORDER BY date DESC LIMIT 1";
+        $last_session = \CourseDate::findBySQL($where, [Context::getId(), $today_timestamp])[0];
+        $now = time();
+
+        return $last_session <= $now && $now <= $last_session->end_time;
+        
     }
     
 }

@@ -4,8 +4,8 @@
     </div>
 
     <div class="video-container">
-        <? if($upcoming_termin): ?>
-            <input type="hidden" id="termin-info" value="<?= $upcoming_termin ?>">
+        <? if($upcoming_termin || isset($session_in_progress)): ?>
+            <input type="hidden" id="termin-info" value="<?= $upcoming_termin ?: $session_in_progress ?>">
         <? endif; ?>
         <video 
             id="stream_video" 
