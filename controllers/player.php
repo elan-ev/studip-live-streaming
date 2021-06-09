@@ -12,7 +12,8 @@
  **/
 
 class PlayerController extends PluginController {
-     
+    
+    private $allow_player_before_start = 5*60; // 5 minutes before session start, show the player and chat!
     /**
     * Displays the player and access data for the stream for lecturers.
     */
@@ -56,17 +57,27 @@ class PlayerController extends PluginController {
             $this->countdown_activated = intval($livestream->countdown_activated);
             
             $livechat = 0;
+            $terminate_session = 0;
             $options = json_decode($livestream->options);
-            if ($options && $options->livechat) {
-                $livechat = intval($options->livechat->active);
+            if ($options) {
+                if ($options->livechat) {
+                    $livechat = intval($options->livechat->active);
+                }
+                if ($options->termin && $options->termin->terminate_session) {
+                    $terminate_session = intval($options->termin->terminate_session);
+                }
             }
             $this->chat_active = $livechat;
+            $this->terminate_session = $terminate_session;
             if ($this->countdown_activated == 1) {
-                if (intval($livestream->countdown_timestamp) > 0) {
+                if (intval($livestream->session_start) > 0) {
                     $this->countdown_manuell = 1;
-                    $this->next_livestream = intval($livestream->countdown_timestamp);
-                    if ($this->next_livestream < strtotime('now')) {
+                    $this->next_livestream = intval($livestream->session_start);
+                    $this->next_livestream_end = intval($livestream->session_end);
+                    if ($this->next_livestream_end < strtotime('now')) {
                         PageLayout::postWarning($this->plugin->_('Die Countdown-Zeit ist abgelaufen. Bitte versuchen Sie, den Termin zu erneuern.'));
+                    } else if ($this->next_livestream_end > strtotime('now') && $this->next_livestream < strtotime('now')) {
+                        PageLayout::postInfo($this->plugin->_('Live-Streaming läuft derzeit.'));
                     }
                 } else {
                     $this->countdown_manuell = 0;
@@ -156,8 +167,8 @@ class PlayerController extends PluginController {
             // countdown
             $next_date_livestream = Seminar::getInstance(Context::getId())->getNextDate();
             if (intval($livestream->countdown_activated) == 1) {
-                if ($livestream->countdown_timestamp > 0) {
-                    $this->upcoming_termin = $livestream->countdown_timestamp;
+                if ($livestream->session_start > 0) {
+                    $this->upcoming_termin = $livestream->session_start;
                 } else {
                     $livestream_datetime = explode(" -", $next_date_livestream)[0];
                     $livestream_datetime = explode(", ", $livestream_datetime)[1];
@@ -169,8 +180,15 @@ class PlayerController extends PluginController {
                 }
 
                 $this->show_countdown = $this->upcoming_termin ? true : false;
+
+                // is a session currently in progress info for displaying the stream and chat
+                $session_info = $this->CheckSessionProgress($livestream);
+                $this->show_player = $session_info->can_show_player;
+                if ($session_info->refresh_in_seconds > 0) {
+                    $this->response->add_header('Refresh', $session_info->refresh_in_seconds);
+                }
             }
-            
+
             // only load chat if it is activated in teacher settings
             $options = json_decode($livestream->options);
             $this->chat_active = false;
@@ -255,27 +273,39 @@ class PlayerController extends PluginController {
         } else {
             $countdown_active = Request::get('countdown_active') ? 1 : 0;
             $manuell = Request::int('manuell');
+            $terminate_session = Request::get('terminate_session') ? 1 : 0;
 
             if ($countdown_active) {
                 $livestream->countdown_activated = 1;
                 if ($manuell) {
-
-                    $next_livestream_date = $this->getDateTime('next_livestream_date', 'd.m.Y', 'next_livestream_time', 'H:i');
-                    if (!$next_livestream_date) {
+                    $next_livestream_startdate = $this->getDateTime('next_livestream_date', 'd.m.Y', 'next_livestream_starttime', 'H:i');
+                    $next_livestream_enddate = $this->getDateTime('next_livestream_date', 'd.m.Y', 'next_livestream_endtime', 'H:i');
+                    $next_livestream_startdate = $next_livestream_startdate ? $next_livestream_startdate->format('Y-m-d H:i:s') : false;
+                    $next_livestream_enddate = $next_livestream_enddate ? $next_livestream_enddate->format('Y-m-d H:i:s') : false;
+                    if (!$next_livestream_startdate || !$next_livestream_enddate || strtotime($next_livestream_startdate) >= strtotime($next_livestream_enddate)) {
                         PageLayout::postError($this->plugin->_('Die Termin- oder Zeitangabe fehlt oder ist ungültig.'));
                         $livestream->countdown_activated = 0;
-                        $livestream->countdown_timestamp = 0;
+                        $livestream->session_start = 0;
+                        $livestream->session_end = 0;
                     } else {
-                        $next_livestream_date = $next_livestream_date->format('Y-m-d H:i:s');
-                        $livestream->countdown_timestamp = strtotime($next_livestream_date);
+                        $livestream->session_start = strtotime($next_livestream_startdate);
+                        $livestream->session_end = strtotime($next_livestream_enddate);
                     }
                 } else {
-                    $livestream->countdown_timestamp = 0;
+                    $livestream->session_start = 0;
+                    $livestream->session_end = 0;
                 }
             } else {
                 $livestream->countdown_activated = 0;
-                $livestream->countdown_timestamp = 0;
+                $livestream->session_start = 0;
+                $livestream->session_end = 0;
+                $terminate_session = 0;
             }
+
+            // terminate_session
+            $options = json_decode($livestream->options) ? json_decode($livestream->options) : new \stdClass();
+            $options->termin->terminate_session = $terminate_session;
+            $livestream->options = json_encode($options);
 
             $livestream->store();
         }
@@ -433,4 +463,61 @@ class PlayerController extends PluginController {
 	    return $return_thread;
     }
     
+    /**
+    * Checks if the session is in progress, and returns the info of the session
+    *
+    * @param object $livestream the livestream object
+    *
+    * @return stdClass
+    */
+    private function CheckSessionProgress($livestream)
+    {
+        $session_info = new \stdClass();
+        $today_timestamp = strtotime('now');
+        $options = json_decode($livestream->options);
+        // Check if coundown is selected!
+        if (intval($livestream->countdown_activated) == 1) {
+            // Check if the manual appointment is set.
+            if (intval($livestream->session_start) > 0) {
+                $session_info->can_show_player = intval($livestream->session_start) - ($this->allow_player_before_start) <= $today_timestamp && $today_timestamp <= intval($livestream->session_end);
+                if (intval($livestream->session_start) > $today_timestamp + $this->allow_player_before_start) {
+                    // Refresh the session when the time reaches the (5 min) before
+                    $session_info->refresh_in_seconds = intval($livestream->session_start) - $today_timestamp - $this->allow_player_before_start;
+                } else {
+                    // Refresh the page after the session ends
+                    //intval($options->termin->terminate_session)
+                    $session_info->refresh_in_seconds = intval($options->termin->terminate_session) ? intval($livestream->session_end) - $today_timestamp : 0;
+                }
+            } else {
+                // Check if the automatic next appointment is selected!
+                // First look for the actual termin.
+                $where = "range_id = ? AND date <= ? AND end_time >= ?";
+                $session_date = \CourseDate::findOneBySQL($where, 
+                        [Context::getId(),
+                            $today_timestamp + $this->allow_player_before_start,
+                            $today_timestamp,
+                        ]);
+                // Jf there is no actual termin, then look for future termin
+                if (!$session_date) {
+                    $where = "range_id = ? AND date > ?";
+                    $session_date = \CourseDate::findOneBySQL($where, 
+                        [Context::getId(),
+                            $today_timestamp + $this->allow_player_before_start
+                        ]);
+                }    
+
+                if ($session_date) {
+                    $session_info->can_show_player = intval($session_date->date) - ($this->allow_player_before_start) <= $today_timestamp && $today_timestamp <= intval($session_date->end_time);
+                    if (intval($session_date->date) > $today_timestamp + $this->allow_player_before_start) {
+                        // Refresh the session when the time reaches the (5 min) before
+                        $session_info->refresh_in_seconds = intval($session_date->date) - $today_timestamp - $this->allow_player_before_start;
+                    } else {
+                        // Refresh the page after the session ends
+                        $session_info->refresh_in_seconds = intval($options->termin->terminate_session) ? intval($session_date->end_time) - $today_timestamp : 0;
+                    }
+                }
+            }
+        }
+        return $session_info;
+    }
 }

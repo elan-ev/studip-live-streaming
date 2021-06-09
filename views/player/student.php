@@ -9,3 +9,10 @@
         <?= $this->render_partial('player/_video_player') ?>
     </section>
 <? endif; ?>
+<? if(!$show_player && !$show_countdown): ?>
+    <section>
+        <div class="no-current-stream">
+            <?= MessageBox::info($plugin->_('Derzeit ist kein Live-Stream für diese Sitzung verfügbar.')) ?>
+        </div>
+    </section>
+<? endif; ?>

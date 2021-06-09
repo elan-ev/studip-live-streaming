@@ -166,7 +166,7 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
         $perm = $GLOBALS['perm'];
 
         $landing = 'player/student';
-        if ($perm->have_studip_perm('tutor', $courseId)) {
+        if ($perm->have_studip_perm('tutor', $course_id)) {
             $landing = 'player/teacher';
         }
 

@@ -1,5 +1,5 @@
 <? if (StudipVersion::olderThan('4.5')): ?>
-	<div class="chatbox-container hide-chat">
+	<div class="chatbox-container">
 		<input type="hidden" id="current_posts_count" value="0">
 		<input type="hidden" id="last_check" value="<?= time() ?>">
 		<input type="hidden" id="base_url" value="plugins.php/blubber/streams/">
@@ -16,7 +16,7 @@
 		</ul>
 	</div>
 <? else: ?>
-	<div id="blubber-index" class="hide-chat">
+	<div id="blubber-index">
 		<div class="blubber_panel"
 				data-active_thread="<?= htmlReady($thread->getId()) ?>"
 				data-thread_data="<?= htmlReady(json_encode($thread->getJSONData() ?: ['thread_posting' => []])) ?>"

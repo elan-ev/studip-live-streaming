@@ -1,14 +1,7 @@
 <section>
-    <div class="no-current-stream">
-        <?= MessageBox::info($plugin->_('Derzeit ist kein Live-Stream für diese Sitzung verfügbar.')) ?>
-    </div>
-
     <div class="video-container">
-        <? if($upcoming_termin): ?>
-            <input type="hidden" id="termin-info" value="<?= $upcoming_termin ?>">
-        <? endif; ?>
         <video 
-            id="stream_video" 
+            id="stream_video"
             class="video-js vjs-default-skin" 
             data-setup='{
                 "fluid": true,
@@ -32,10 +25,13 @@
         
     </div>
     
-    <div class="zoom-info"><?= $plugin->_('Um das Video zu vergrößern/verkleinern, 
-                                        halten Sie die Shift-Taste gedrückt und 
-                                        benutzen Sie das Mausrad, oder nutzen Sie 
-                                        die Funktionen in der Kontrollzeile') ?></div>
+    <div class="zoom-info">
+        <input type="hidden" id="zoom_info"
+            value="<?= $plugin->_('Um das Video zu vergrößern/verkleinern, 
+                    halten Sie die Shift-Taste gedrückt und 
+                    benutzen Sie das Mausrad, oder nutzen Sie 
+                    die Funktionen in der Kontrollzeile') ?>">
+    </div>
                                         
     <?= \Icon::create('search+add', 'info_alt', ['title' => _('Vergrößern'), 'class' => 'livestreaming-zoomin'])->asImg(16) ?>
     <?= \Icon::create('search+remove', 'info_alt', ['title' => _('Verkleinern'), 'class' => 'livestreaming-zoomout'])->asImg(16) ?>

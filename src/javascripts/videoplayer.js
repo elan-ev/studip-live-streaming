@@ -40,7 +40,7 @@ $(function(){
     });
 
     // add overlay info about zoom functions
-    $('#stream_video').prepend($('.zoom-info'));
+    $('#stream_video').prepend($('.zoom-info').text($('#zoom_info').val()));
     // remove zoom info after video plays for the first time
     player.one('play', function() {
         $('.zoom-info').remove();
@@ -172,10 +172,7 @@ $(function(){
     /******************/
     
     player.on('canplay', function(event) {
-        $('.no-current-stream').hide();
         $('.video-container').show();
-    
-        showChat();
     });
     
     // reload player every 30 seconds
@@ -193,34 +190,8 @@ $(function(){
                 },
             ]); 
         }, 30000);
-        
-        // show player 5 mins before stream starts and give it time to load 
-        // for 30 seconds after, else display info that there is no stream
-        // if isNaN(termin_timestamp), means the session is live.
-        var termin_timestamp = parseInt($('#termin-info').val());
-        if (isNaN(termin_timestamp) || (Date.now() / 1000 + 30 >= (termin_timestamp - 5*60))) {
-            $('.no-current-stream').hide();
-            $('.video-container').show();
-            showChat();
-        } else {
-            $('.video-container').hide();
-            $('.upcoming-livestream').before($('.no-current-stream'));
-            $('.no-current-stream').show();
-        }
     });
     
-    // show the chat depending on the studip-version
-    function showChat() {
-        // studip version < 4.5
-        if ($('.chatbox-container').hasClass('hide-chat')) {
-            $('.chatbox-container').removeClass('hide-chat');
-        }
-        // studip version >= 4.5
-        if ($('#blubber-index').hasClass('hide-chat')) {
-            $('#blubber-index').removeClass('hide-chat');
-        }
-    }
-
     // Blubber Modifications
     if (STUDIP_VERSION < 4.5 && STUDIP.Blubber) {
         // Extend the Blubber 

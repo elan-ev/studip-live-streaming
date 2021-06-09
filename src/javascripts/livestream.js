@@ -78,14 +78,17 @@ function toggleDateTimeInputAttributes() {
     if (countdown) {
         if (manuell == 1) {
             $('input[name="next_livestream_date"]').removeAttr('disabled').attr('required', true);
-            $('input[name="next_livestream_time"]').removeAttr('disabled').attr('required', true);
+            $('input[name="next_livestream_starttime"]').removeAttr('disabled').attr('required', true);
+            $('input[name="next_livestream_endtime"]').removeAttr('disabled').attr('required', true);
         } else {
             $('input[name="next_livestream_date"]').removeAttr('required').attr('disabled', true);
-            $('input[name="next_livestream_time"]').removeAttr('required').attr('disabled', true);
+            $('input[name="next_livestream_starttime"]').removeAttr('required').attr('disabled', true);
+            $('input[name="next_livestream_endtime"]').removeAttr('required').attr('disabled', true);
         }
     } else {
         $('input[name="next_livestream_date"]').removeAttr('required').attr('disabled', true);
-        $('input[name="next_livestream_time"]').removeAttr('required').attr('disabled', true);
+        $('input[name="next_livestream_starttime"]').removeAttr('required').attr('disabled', true);
+        $('input[name="next_livestream_endtime"]').removeAttr('required').attr('disabled', true);
     }
 }
 
