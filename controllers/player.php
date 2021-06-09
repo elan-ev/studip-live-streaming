@@ -249,7 +249,7 @@ class PlayerController extends PluginController {
             }
         }
 
-        if ($error) {
+        if ($error || !$this->show_player && !$this->show_countdown) {
             PageLayout::postInfo($this->plugin->_("Derzeit ist kein Live-Stream für diese Sitzung verfügbar."));
         }
     }
