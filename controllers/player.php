@@ -138,7 +138,7 @@ class PlayerController extends PluginController {
 
             PageLayout::postSuccess($this->plugin->_('Die LiveStreaming Daten wurden erfolgreich gespeichert.'));
         }
-        
+
         $this->redirect('player/teacher');
     }
 
@@ -308,6 +308,11 @@ class PlayerController extends PluginController {
             $livestream->options = json_encode($options);
 
             $livestream->store();
+
+            PageLayout::postSuccess(sprintf(
+                $countdown_active ? _('"%s" wurde aktiviert.') : _('"%s" wurde deaktiviert.'),
+                'Countdown'
+            ));
         }
         $this->redirect('player/teacher');
     }
@@ -335,6 +340,11 @@ class PlayerController extends PluginController {
             $livestream->options = json_encode($options);
             
             $livestream->store();
+            
+            PageLayout::postSuccess(sprintf(
+                $chat_active ? _('"%s" wurde aktiviert.') : _('"%s" wurde deaktiviert.'),
+                'Live-Chat'
+            ));
         }
         
         $this->redirect('player/teacher');
