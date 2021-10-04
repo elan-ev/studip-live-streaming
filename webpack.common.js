@@ -38,29 +38,15 @@ module.exports = {
                         }
                     },
                     {
-                        loader: 'resolve-url-loader'
-                    },
-                    {
                         loader: 'sass-loader'
                     }
                 ]
-            },
-            { 
-                test: /\.(png|woff|woff2|eot|ttf|svg)$/,
-                loader: 'file-loader',
-                options: {
-                    name: '[name].[ext]?[contenthash]',
-                    outputPath: 'fonts',
-                    publicPath: '../fonts',
-                },
-            },
+            }
         ],
     },
     plugins: [
         new MiniCssExtractPlugin({
             filename: 'css/[name].css',
-            allChunks: true,
         }),
-        
     ]
 };

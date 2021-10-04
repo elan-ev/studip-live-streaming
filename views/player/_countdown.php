@@ -16,14 +16,14 @@ switch( $diff_days ) {
         $diff_days_str = _('morgen');
         break;
     default:
-        $diff_days_str = date("d.m.Y", $upcoming_termin);
+        $diff_days_str = "am " . date("d.m.Y", $upcoming_termin);
 }
 ?>
 <section>
     <div class="upcoming-livestream">
         <div class="countdown">
             <h4>
-                <p><?= sprintf($plugin->_('Der nächste Live-Stream beginnt am %s um %s Uhr'), $diff_days_str, date("H:i", $upcoming_termin)) ?>
+                <p><?= sprintf($plugin->_('Der nächste Live-Stream beginnt %s um %s Uhr'), $diff_days_str, date("H:i", $upcoming_termin)) ?>
                 </p>
                 <? if($diff_days == 0): ?>
                     <span class="upcoming-countdown" data-start="<?= $upcoming_termin?>">

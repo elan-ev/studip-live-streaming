@@ -27,19 +27,19 @@
             <form class="default" action="<?= PluginEngine::getLink('LiveStreaming/player/toggle_countdown') ?>" method="post">
                 <?= CSRFProtection::tokenTag() ?>
                 <fieldset>
-                    <legend><?= htmlReady(_('Countdown'))?></legend>
+                    <legend><?= htmlReady(_('Termin und Countdown'))?></legend>
                     <label>
                         <input type="checkbox"
                             name="countdown_active"
                             id="countdown_active"
                             <? if ($countdown_activated == 1) echo 'checked'; ?>>
-                            <?= _('Countdown zum nächsten LiveStream anzeigen');?>
-                            <?= tooltipIcon(_('Soll ein Countdown zum nächsten LiveStream angezeigt werden?')) ?>
+                            <?= _('Termin hinzufügen und Countdown zum nächsten LiveStream anzeigen');?>
+                            <?= tooltipIcon(_('Vereinbaren Sie den nächsten Termin des LiveStreams und der Countdown wird angezeigt.')) ?>
                     </label>
                     <div id="livestream_next" <? if ($countdown_activated != 1) echo 'style="display: none;"' ?>>
                         <label>
                             <input type="radio" name="manuell" value="0" <? if ($countdown_manuell == 0) echo 'checked'; ?>>
-                            <?= _('Nächster Termin in der Sitzung') . ($sem_next_session ? ': ' . $sem_next_session : '') ?>
+                            <?= _('Nächster/Aktueller Termin in der Sitzung') . ($sem_next_session ? ': ' . $sem_next_session : ' (' . _('Es gibt keinen neuen Termin verfügbar') . ')') ?>
                         </label>
                         <label>
                             <input type="radio" name="manuell" value="1" <? if ($countdown_manuell == 1) echo 'checked'; ?>>
@@ -52,8 +52,21 @@
                         </label>
                         <label class="col-2">
                             <?= _('Startzeit') ?>
-                            <input class="studip-timepicker size-s" type="text" name="next_livestream_time" <?= ($countdown_manuell == 1 ? 'requiered' : 'disabled' )?>
+                            <input class="studip-timepicker size-s" type="text" name="next_livestream_starttime" <?= ($countdown_manuell == 1 ? 'requiered' : 'disabled' )?>
                                 value="<?= htmlReady(($next_livestream ? date('H:i', $next_livestream) : '')) ?>" placeholder="HH:mm">
+                        </label>
+                        <label class="col-2">
+                            <?= _('Endzeit') ?>
+                            <input class="studip-timepicker size-s" type="text" name="next_livestream_endtime" <?= ($countdown_manuell == 1 ? 'requiered' : 'disabled' )?>
+                                value="<?= htmlReady(($next_livestream_end ? date('H:i', $next_livestream_end) : '')) ?>" placeholder="HH:mm">
+                        </label>
+                        <label>
+                            <input type="checkbox"
+                                name="terminate_session"
+                                id="terminate_session"
+                                <? if ($terminate_session == 1) echo 'checked'; ?>>
+                                <?= _('Livestream nach Ablauf der Zeit beenden');?>
+                                <?= tooltipIcon(_('Wenn der Termin beendet ist, wird der LiveStream-Player nicht mehr angezeigt.')) ?>
                         </label>
                     </div>
                 </fieldset>
@@ -61,7 +74,23 @@
                     <?= Studip\Button::create(_('Speichern'))?>
                 </footer>
             </form>
-        <?endif;?>    
+            <hr>
+            <form class="default" action="<?= PluginEngine::getLink('LiveStreaming/player/toggle_chat') ?>" method="post">
+                <?= CSRFProtection::tokenTag() ?>
+                <fieldset>
+                    <legend><?= _('Live-Chat') ?></legend>
+                    <label>
+                        <input type="checkbox" name="chat_active" id="chat_active" value="1" 
+                            <? if ($chat_active == 1) echo 'checked'; ?>>
+                            <?= _('Live-Chat aktivieren') ?>
+                            <?= tooltipIcon(_('Soll ein Live-Chat während des Streams unter dem Video verfügbar sein?')) ?>
+                    </label>
+                </fieldset>
+                <footer>
+                    <?= Studip\Button::create(_('Speichern'))?>
+                </footer>
+            </form>
+        <?endif;?>
         <hr>
         <? if($mode == MODE_DEFAULT): ?>
             <?= $this->render_partial('player/_teacher_info') ?>

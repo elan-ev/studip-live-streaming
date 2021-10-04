@@ -23,4 +23,3 @@ Der Lehrende muss nur einmalig entscheiden, ob das "Live Streaming von Zuhause" 
 Wenn sich der Lehrende für Opencast entscheidet, ist nichts weiter zu tun. Passend zur nächsten Übertragung wird der Player auf der Ansicht für die Studierende beim Ablauf des Countdowns aktiviert. 
 
 Wenn mit OBS von Zuhause gestreamt werden soll, werden die Zugangsdaten für den Live-Stream angezeigt. OBS erwartet den letzten Teil der URL als "Streamschlüssel".
-
