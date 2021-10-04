@@ -1,6 +1,6 @@
 {
     "name": "LiveStreaming",
-    "version": "1.0.2",
+    "version": "1.1",
     "description": "StudIP Live Streaming Plugin",
     "main": "index.js",
     "scripts": {
@@ -9,7 +9,7 @@
         "dev": "webpack --config webpack.dev.js --mode=development",
         "watch": "webpack --config webpack.dev.js --mode=development --watch",
         "prezip": "npm install && npm run prod",
-        "zip": "zip -r LiveStreaming.zip controllers assets migrations views lib images LICENSE README.md LiveStreaming.php plugin.manifest package-lock.json"
+        "zip": "zip -r LiveStreaming-V$npm_package_version.zip controllers assets migrations views lib images LICENSE README.md LiveStreaming.php plugin.manifest package-lock.json"
     },
     "author": "ELAN e.V. (zamani@uos.de)",
     "devDependencies": {
