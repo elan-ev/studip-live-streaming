@@ -55,6 +55,22 @@ $(function(){
         });
     }
 
+    if ($('.clipboard-btn').is(':visible')) {
+        $('.clipboard-btn').on('click', function(e) {
+            e.preventDefault();
+            var target_id = $(this).data('target-id');
+            var target_title = $(this).data('target-title') ? $(this).data('target-title') : 'Das Feld'.toLocaleString();
+            var copied = copyToClipboard(target_id);
+            var message = `${target_title} wurde in die Zwischenablage kopiert.`.toLocaleString();
+            var type = 'success';
+            if (!copied) {
+                message = `${target_title} konnte nicht in die Zwischenablage kopiert werden.`.toLocaleString();
+                type = 'error';
+            }
+            showMessageBox(message, type, target_id);
+        });
+    }
+
     $(document).on('change', '#countdown_active', function(event) {
         if ($(event.target).is(':checked')) {
             $('#livestream_next').show(() => {
@@ -120,3 +136,30 @@ function getCountdown(end_timestamp) {
     return countdown.join(':');
 }
 
+function copyToClipboard(target_id) {
+    var is_copied = false;
+    try {
+        let targeted_span_element = document.getElementById(target_id);
+        var temp_textarea = document.createElement("textarea");
+        temp_textarea.value = targeted_span_element.textContent;
+        document.body.appendChild(temp_textarea);
+        temp_textarea.select();
+        document.execCommand("Copy");
+        temp_textarea.remove();
+        is_copied = true;
+    } catch (error) {
+        console.log(error);
+    }
+    return is_copied;
+}
+
+function showMessageBox(message, type, target_id) {
+    var messagebox_element = $(`#${target_id}`).closest('form').find('.messagebox');
+    if (messagebox_element.length) {
+        messagebox_element.removeClass();
+        var class_type = `messagebox_${type}`;
+        messagebox_element.addClass('messagebox ' + class_type);
+        messagebox_element.text(message);
+        messagebox_element.show();
+    }
+}
