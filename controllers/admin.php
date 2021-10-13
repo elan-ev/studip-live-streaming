@@ -73,8 +73,7 @@ class AdminController extends PluginController {
         if ($use_opencast) {
             $oc_player_url = Request::get('oc_player_url');
         }
-        
-        
+
         $error = false;
         if (!$this->checkUrl($sender_url)) {
             PageLayout::postError($this->plugin->_('Stream-URL (Sender) ist ungültig.'));
@@ -99,10 +98,10 @@ class AdminController extends PluginController {
         if (!$error) {
             $livestream_config['loginname'] = $loginname;
             $livestream_config['password'] = $password;
-            $livestream_config['sender_url'] = $sender_url;
-            $livestream_config['player_url'] = $player_url;
+            $livestream_config['sender_url'] = trim(strtolower($sender_url));
+            $livestream_config['player_url'] = trim(strtolower($player_url));
             if ($use_opencast && $this->plugin->checkOpenCast()) {
-                $livestream_config['oc_player_url'] = $oc_player_url;
+                $livestream_config['oc_player_url'] = trim(strtolower($oc_player_url));
                 $livestream_config['use_opencast'] = true;
             } else {
                 $livestream_config['use_opencast'] = false;
