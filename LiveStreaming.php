@@ -111,13 +111,13 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
             $navigation->addSubNavigation('teacher', 
                 new Navigation($this->_('Konfiguration'), PluginEngine::getURL('LiveStreaming/player/teacher')));
             $navigation->addSubNavigation('student', 
-                new Navigation($this->_('Studentenansicht'), PluginEngine::getURL('LiveStreaming/player/student')));
+                new Navigation($this->_('Studierendenansicht'), PluginEngine::getURL('LiveStreaming/player/student')));
         } elseif ($perm->have_studip_perm('tutor', $course_id)) {
             $navigation = new Navigation($this->getPluginName(), PluginEngine::getURL('LiveStreaming/player/teacher'));
             $navigation->addSubNavigation('teacher', 
                 new Navigation($this->_('Konfiguration'), PluginEngine::getURL('LiveStreaming/player/teacher')));
             $navigation->addSubNavigation('student', 
-                new Navigation($this->_('Studentenansicht'), PluginEngine::getURL('LiveStreaming/player/student')));
+                new Navigation($this->_('Studierendenansicht'), PluginEngine::getURL('LiveStreaming/player/student')));
         } else {
             $navigation = new Navigation($this->getPluginName(), PluginEngine::getURL('LiveStreaming/player/student'));
             $navigation->addSubNavigation('student', 
