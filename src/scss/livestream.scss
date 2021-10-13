@@ -63,3 +63,15 @@ section {
         }
     }
 }
+form {
+    &.livestreaming-player-info {
+        div.messagebox {
+            display: none;
+        }
+        fieldset {
+            label {
+                cursor: default;
+            }
+        }
+    }
+}
