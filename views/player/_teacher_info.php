@@ -6,7 +6,7 @@
             <span>
                 <strong><?= $plugin->_('Stream-URL (Sender)') ?>:</strong>
                 <?= Icon::create(
-                    'clipboard',
+                    'edit+export',
                     Icon::ROLE_CLICKABLE,
                     ['title' => $plugin->_('In Zwischenablage kopieren')]
                 )->asInput([
@@ -23,7 +23,7 @@
             <span>
                 <strong><?= $plugin->_('Stream-URL (Empfänger)') ?>:</strong>
                 <?= Icon::create(
-                    'clipboard',
+                    'edit+export',
                     Icon::ROLE_CLICKABLE,
                     ['title' => $plugin->_('In Zwischenablage kopieren')]
                 )->asInput([
@@ -40,7 +40,7 @@
             <span>
                 <strong><?= $plugin->_('Benutzername') ?>:</strong>
                 <?= Icon::create(
-                    'clipboard',
+                    'edit+export',
                     Icon::ROLE_CLICKABLE,
                     ['title' => $plugin->_('In Zwischenablage kopieren')]
                 )->asInput([
@@ -57,7 +57,7 @@
             <span>
                 <strong><?= $plugin->_('Passwort') ?>:</strong>
                 <?= Icon::create(
-                    'clipboard',
+                    'edit+export',
                     Icon::ROLE_CLICKABLE,
                     ['title' => $plugin->_('In Zwischenablage kopieren')]
                 )->asInput([
