@@ -2,13 +2,7 @@
     <div class="video-container">
         <video 
             id="stream_video"
-            class="video-js vjs-default-skin" 
-            data-setup='{
-                "fluid": true,
-                "autoplay": true,
-                "preload": true,
-                "controls": true       
-            }'
+            class="video-js vjs-default-skin"
         >
             <source id="video_source_1" src="<?= $player_url ?>" type='application/x-mpegurl' />
             <source id="video_source_2" src="<?= $player_url ?>" type='application/dash+xml' />

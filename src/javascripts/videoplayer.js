@@ -22,8 +22,33 @@ $(function(){
     const ZOOM_IN_CURSOR = $('input[type="hidden"]#livestreaming_zoomin_cursor').val();
     const ZOOM_OUT_CURSOR = $('input[type="hidden"]#livestreaming_zoomout_cursor').val();
     const ZOOM_DEFAULT_CURSOR = $('input[type="hidden"]#livestreaming_zoomdefault_cursor').val();
-    let player = videojs('stream_video');
-    player.play();
+
+    let player = videojs('stream_video', {
+        fluid: true,
+        preload: true,
+        controls: true,
+        muted: true // Make sure the video is muted to be able to autorun the chrome!
+    });
+
+    // Programmatically perform autoplay to avoid AutoPlayNotAllowed error in Chrome.
+    player.ready(() => {
+        // Avoid the Promise Error in Chrome.
+        setTimeout(() => {      
+            if (player.paused()) {
+                var promise = player.play();
+                var player_obj = player.player();
+                if (promise !== undefined) {
+                    promise.then(() => {
+                        player_obj.muted(false); // Unmute the video after it is started!
+                        console.log('Video is played and unmuted!');
+                    }).catch((error) => {
+                        console.log(error);
+                    });
+                }
+            }
+        }, 150);
+    });
+
     document.getElementById('player-reload-btn').addEventListener("click", function(e) {
         e.preventDefault();
         player.reset();
