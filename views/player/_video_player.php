@@ -13,7 +13,7 @@
                                 Sollte dies nicht der Fall sein können Sie den Player manuell neu laden.') ?></p>
         </div>
         
-        <? if (Navigation::hasItem("/community/blubber") && $mode == MODE_DEFAULT && $thread && $chat_active): ?>
+        <? if (Navigation::hasItem("/community/blubber") && $thread && $chat_active): ?>
             <?= $this->render_partial("player/_livechat.php") ?>
         <? endif ?>
         
