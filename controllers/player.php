@@ -69,8 +69,8 @@ class PlayerController extends PluginController {
         if ($mode == MODE_DEFAULT) {
             $this->player_username  = $livestream_config['loginname'];
             $this->player_password  = $livestream_config['password'];
-            $this->sender_url       = str_replace(URLPLACEHOLDER, Context::getId(), trim(strtolower($livestream_config['sender_url'])));
-            $this->player_url       = str_replace(URLPLACEHOLDER, Context::getId(), trim(strtolower($livestream_config['player_url'])));
+            $this->sender_url       = str_replace(URLPLACEHOLDER, Context::getId(), $this->lowercaseURLProtocol($livestream_config['sender_url']));
+            $this->player_url       = str_replace(URLPLACEHOLDER, Context::getId(), $this->lowercaseURLProtocol($livestream_config['player_url']));
 
             $this->countdown_activated = intval($livestream->countdown_activated);
             
@@ -168,7 +168,7 @@ class PlayerController extends PluginController {
 
         if ($mode == MODE_DEFAULT) {
             $this->show_player = true;
-            $this->player_url = str_replace(URLPLACEHOLDER, Context::getId(), trim(strtolower($livestream_config['player_url'])));
+            $this->player_url = str_replace(URLPLACEHOLDER, Context::getId(), $this->lowercaseURLProtocol($livestream_config['player_url']));
             $this->mode = $mode;
             
             // countdown
@@ -208,7 +208,7 @@ class PlayerController extends PluginController {
                 $this->show_player = true;
                 $refresh_in_seconds = $todays_session[LIVE]['refresh_seconds'];
                 $this->termin = $todays_session[LIVE]['termin'];
-                $this->player_url= str_replace(URLPLACEHOLDER, $todays_session[LIVE]['capture_agent'], trim(strtolower($livestream_config['oc_player_url'])));
+                $this->player_url = str_replace(URLPLACEHOLDER, $todays_session[LIVE]['capture_agent'], $this->lowercaseURLProtocol($livestream_config['oc_player_url']));
             }
 
             if (isset($todays_session[PENDING])) {
@@ -539,4 +539,13 @@ class PlayerController extends PluginController {
         }
         return $session_info;
     }
+
+    private function lowercaseURLProtocol($url) {
+        $url_explode = explode('://', $url);
+        if ($url_explode) {
+            $url = strtolower($url_explode[0]) . '://' . $url_explode[1];
+        }
+        return $url;
+    }
 }
+
