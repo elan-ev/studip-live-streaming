@@ -23,7 +23,23 @@
                 </div>
             <?endif;?>
         </div>
+        <form class="default" action="<?= PluginEngine::getLink('LiveStreaming/player/toggle_chat') ?>" method="post">
+            <?= CSRFProtection::tokenTag() ?>
+            <fieldset>
+                <legend><?= _('Live-Chat') ?></legend>
+                <label>
+                    <input type="checkbox" name="chat_active" id="chat_active" value="1" 
+                        <? if ($chat_active == 1) echo 'checked'; ?>>
+                        <?= _('Live-Chat aktivieren') ?>
+                        <?= tooltipIcon(_('Soll ein Live-Chat während des Streams unter dem Video verfügbar sein?')) ?>
+                </label>
+            </fieldset>
+            <footer>
+                <?= Studip\Button::create(_('Speichern'))?>
+            </footer>
+        </form>
         <? if($mode == MODE_DEFAULT ): ?>
+            <hr>
             <form class="default" action="<?= PluginEngine::getLink('LiveStreaming/player/toggle_countdown') ?>" method="post">
                 <?= CSRFProtection::tokenTag() ?>
                 <fieldset>
@@ -69,22 +85,6 @@
                                 <?= tooltipIcon(_('Wenn der Termin beendet ist, wird der LiveStream-Player nicht mehr angezeigt.')) ?>
                         </label>
                     </div>
-                </fieldset>
-                <footer>
-                    <?= Studip\Button::create(_('Speichern'))?>
-                </footer>
-            </form>
-            <hr>
-            <form class="default" action="<?= PluginEngine::getLink('LiveStreaming/player/toggle_chat') ?>" method="post">
-                <?= CSRFProtection::tokenTag() ?>
-                <fieldset>
-                    <legend><?= _('Live-Chat') ?></legend>
-                    <label>
-                        <input type="checkbox" name="chat_active" id="chat_active" value="1" 
-                            <? if ($chat_active == 1) echo 'checked'; ?>>
-                            <?= _('Live-Chat aktivieren') ?>
-                            <?= tooltipIcon(_('Soll ein Live-Chat während des Streams unter dem Video verfügbar sein?')) ?>
-                    </label>
                 </fieldset>
                 <footer>
                     <?= Studip\Button::create(_('Speichern'))?>

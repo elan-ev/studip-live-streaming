@@ -48,6 +48,24 @@ class PlayerController extends PluginController {
 
         $this->mode = $mode;
 
+        // Processing option related stuff before evaluating the modes.
+        // Live-Chat should now be available for both modes.
+
+        $options = json_decode($livestream->options);
+        $terminate_session = 0;
+        $livechat = 0;
+           
+        if ($options) {
+            if ($options->livechat) {
+                $livechat = intval($options->livechat->active);
+            }
+            if ($options->termin && $options->termin->terminate_session) {
+                $terminate_session = intval($options->termin->terminate_session);
+            }
+        }
+
+        $this->chat_active = $livechat;
+
         if ($mode == MODE_DEFAULT) {
             $this->player_username  = $livestream_config['loginname'];
             $this->player_password  = $livestream_config['password'];
@@ -56,18 +74,6 @@ class PlayerController extends PluginController {
 
             $this->countdown_activated = intval($livestream->countdown_activated);
             
-            $livechat = 0;
-            $terminate_session = 0;
-            $options = json_decode($livestream->options);
-            if ($options) {
-                if ($options->livechat) {
-                    $livechat = intval($options->livechat->active);
-                }
-                if ($options->termin && $options->termin->terminate_session) {
-                    $terminate_session = intval($options->termin->terminate_session);
-                }
-            }
-            $this->chat_active = $livechat;
             $this->terminate_session = $terminate_session;
             if ($this->countdown_activated == 1) {
                 if (intval($livestream->session_start) > 0) {
@@ -154,8 +160,9 @@ class PlayerController extends PluginController {
         $livestream_config = LiveStream::getConfig();
         $livestream = LiveStream::find(Context::getId());
         $mode = $livestream->mode;
+        $options = json_decode($livestream->options);
         $error = false;
-        if ($mode != MODE_DEFAULT && $mode != MODE_OPENCAST) {
+        if ($mode != MODE_DEFAULT && $mode != MODE_OPENCAST || !$livestream) {
             $error = true;
         }
 
@@ -188,28 +195,6 @@ class PlayerController extends PluginController {
                     $this->response->add_header('Refresh', $session_info->refresh_in_seconds);
                 }
             }
-
-            // only load chat if it is activated in teacher settings
-            $options = json_decode($livestream->options);
-            $this->chat_active = false;
-            
-            if ($options->livechat->active) {
-                $this->chat_active = true;
-                // format date to d.m.Y to identify specific chat for the current stream
-                $next_date_formatted = explode(" ", explode(", ", $next_date_livestream)[1])[0];
-                
-                if (StudipVersion::olderThan('4.5')) {
-                    $this->thread           = $this->getBlubberThreadOldStudip($next_date_formatted);
-                    $this->course_id        = Context::getId();
-	                $this->single_thread    = true;
-	                BlubberPosting::$course_hashes = (
-	                	$this->thread['user_id'] !== $this->thread['Seminar_id'] ? $this->thread['Seminar_id'] : false
-	                );
-                } else {
-                    $this->thread = $this->getBlubberThread($next_date_formatted);
-                }
-            }
-            
         } else {
 
             $refresh_in_seconds = REFRESH_INTERVALS;
@@ -236,7 +221,7 @@ class PlayerController extends PluginController {
             $this->response->add_header('Refresh', $refresh_in_seconds);
         }
 
-        
+        // NOTE:Live-Chat appears when the show_player is true only.
         if ($this->show_player == true) {
             PageLayout::addStylesheet($this->plugin->getPluginURL() . '/assets/css/videoplayer.css');
             PageLayout::addScript($this->plugin->getPluginURL() . '/assets/javascripts/videoplayer.js');
@@ -246,6 +231,26 @@ class PlayerController extends PluginController {
                 PageLayout::addScript("{$blubber->getPluginURL()}/assets/javascripts/autoresize.jquery.min.js");
                 PageLayout::addScript("{$blubber->getPluginURL()}/assets/javascripts/blubber.js");
                 PageLayout::addScript("{$blubber->getPluginURL()}/assets/javascripts/formdata.js");
+            }
+
+            // Live-Chat should now be available for both modes and it is shown only when the show_player is true.
+            $this->chat_active = false;
+            
+            if ($options->livechat->active) {
+                $this->chat_active = true;
+
+                $next_date_formatted = !empty($next_date_livestream) ? explode(" ", explode(", ", $next_date_livestream)[1])[0] : date('d.m.Y');
+                
+                if (StudipVersion::olderThan('4.5')) {
+                    $this->thread           = $this->getBlubberThreadOldStudip($next_date_formatted);
+                    $this->course_id        = Context::getId();
+	                $this->single_thread    = true;
+	                BlubberPosting::$course_hashes = (
+	                	$this->thread['user_id'] !== $this->thread['Seminar_id'] ? $this->thread['Seminar_id'] : false
+	                );
+                } else {
+                    $this->thread = $this->getBlubberThread($next_date_formatted);
+                }
             }
         }
 
@@ -331,7 +336,8 @@ class PlayerController extends PluginController {
         $livestream = LiveStream::find(Context::getId());
         $mode = $livestream->mode;
         
-        if ($mode != MODE_DEFAULT) {
+        // Providing Live-Chat for both modes.
+        if ($mode != MODE_DEFAULT && $mode != MODE_OPENCAST) {
             PageLayout::postError($this->plugin->_('Mode ist ungültig.'));
         } else {
             $chat_active = Request::get('chat_active') ? 1 : 0;
@@ -399,6 +405,9 @@ class PlayerController extends PluginController {
     */
     private function getBlubberThread($formatted_date)
     {
+        if (empty($formatted_date)) {
+            $formatted_date = date('d.m.Y');
+        }
         $threads = BlubberThread::findBySeminar(Context::getId());
         $thread_exists = false;
         $thread_id = null;
