@@ -7,52 +7,71 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  */
+import Hls from 'hls.js';
+window.Hls = Hls;
+import OpenPlayerJS from 'openplayerjs';
+window.OpenPlayerJS = OpenPlayerJS;
+import opOptions from './lib/openplayer-options';
+import opSetupZoom from './lib/openplayer-zoom';
 
-import videojs from 'video.js';
-window.videojs = videojs;
 
-// scaling factor for click-zoom
-const SCALINGFACTOR = 20;
-// initial scale
-let scale = 1;
-
-$(function(){
+window.onload = function() {
     const PLAYER_URL = $('input[type="hidden"]#player_url').val();
     const STUDIP_VERSION = parseFloat($('input[type="hidden"]#studip_version').val());
-    const ZOOM_IN_CURSOR = $('input[type="hidden"]#livestreaming_zoomin_cursor').val();
-    const ZOOM_OUT_CURSOR = $('input[type="hidden"]#livestreaming_zoomout_cursor').val();
-    const ZOOM_DEFAULT_CURSOR = $('input[type="hidden"]#livestreaming_zoomdefault_cursor').val();
+    // Zoom icons from DOM.
+    const ZOOM_IN_ICON = document.getElementById('livestreaming-zoomin');
+    const ZOOM_IN_OVERLAY_ICON = document.getElementById('livestreaming-zoomin-overlay');
+    const ZOOM_OUT_ICON = document.getElementById('livestreaming-zoomout');
+    const ZOOM_OUT_OVERLAY_ICON = document.getElementById('livestreaming-zoomout-overlay');
+    const ZOOM_DEFAULT_ICON = document.getElementById('livestreaming-zoomdefault');
+    const ZOOM_RESET_ICON = document.getElementById('livestreaming-zoomreset');
 
-    let player = videojs('stream_video', {
-        fluid: true,
-        preload: true,
-        controls: true,
-        muted: true // Make sure the video is muted to be able to autorun the chrome!
-    });
+    let zooms = {
+        in: ZOOM_IN_ICON,
+        in_overlay: ZOOM_IN_OVERLAY_ICON,
+        out: ZOOM_OUT_ICON,
+        out_overlay: ZOOM_OUT_OVERLAY_ICON,
+        default: ZOOM_DEFAULT_ICON,
+        reset: ZOOM_RESET_ICON
+    };
 
-    // Programmatically perform autoplay to avoid AutoPlayNotAllowed error in Chrome.
-    player.ready(() => {
-        // Avoid the Promise Error in Chrome.
-        setTimeout(() => {      
-            if (player.paused()) {
-                var promise = player.play();
-                var player_obj = player.player();
-                if (promise !== undefined) {
-                    promise.then(() => {
-                        player_obj.muted(false); // Unmute the video after it is started!
-                        console.log('Video is played and unmuted!');
-                    }).catch((error) => {
-                        console.log(error);
-                    });
-                }
-            }
-        }, 150);
-    });
+    let player = new OpenPlayerJS('stream_video', opOptions);
+    opSetupZoom(player, zooms);
 
+    player.init();
+    // player.play();
+
+    appendZoomInfo(player.getContainer());
+   
     document.getElementById('player-reload-btn').addEventListener("click", function(e) {
         e.preventDefault();
-        player.reset();
-        player.src([
+        resetPlayer();
+    });
+
+    player.getElement().addEventListener('playererror', function(e) {
+        console.log('Fail to load stream!');
+        setTimeout(() => { 
+            resetPlayer();
+        }, 30000);
+    });
+
+    // When the hls is loaded. 
+    player.getElement().addEventListener('hlsManifestLoaded', function(e) {
+        // Remove the zoom info text.
+        $('#zoom-info-main').show();
+    });
+
+    player.getElement().addEventListener('controlshidden', function(e) {
+        $('#zoom-info-main').hide();
+    });
+
+    /*************/
+    /* FUNCTIONS */
+    /*************/
+
+    function resetPlayer() {
+        var player = OpenPlayerJS.instances['stream_video'];
+        player.src = [
             {
                 src: PLAYER_URL,
                 type: 'application/x-mpegurl'
@@ -61,162 +80,23 @@ $(function(){
                 src: PLAYER_URL,
                 type: 'application/dash+xml'
             },
-        ]);
-    });
+        ];
 
-    // add overlay info about zoom functions
-    $('#stream_video').prepend($('.zoom-info').text($('#zoom_info').val()));
-    // remove zoom info after video plays for the first time
-    player.one('play', function() {
-        $('.zoom-info').remove();
-    });
-
-    /************************/
-    /*** ADD ZOOM BUTTONS ***/
-    /************************/
-    
-    // zoom in button
-    var zoomInButton = player.controlBar.addChild("button", {}, player.controlBar.children().length - 1);
-    var zoomInButtonDom = zoomInButton.el();
-    $(zoomInButtonDom).append($('.livestreaming-zoomin'));
-    
-    // zoom out button 
-    var zoomOutButton = player.controlBar.addChild("button", {}, player.controlBar.children().length - 1);
-    var zoomOutButtonDom = zoomOutButton.el();
-    $(zoomOutButtonDom).append($('.livestreaming-zoomout'));
-    
-    // default zoom button 
-    var zoomDefaultButton = player.controlBar.addChild("button", {}, player.controlBar.children().length - 1);
-    var zoomDefaultButtonDom = zoomDefaultButton.el();
-    $(zoomDefaultButtonDom).append($('.livestreaming-zoomdefault'));
-
-    /*********************************/
-    /*** ADD ZOOM BUTTON FUNCTIONS ***/
-    /*********************************/
-    
-    // zoom in function
-    $(zoomInButtonDom).on('click touchstart', function(e) {
-        e.stopPropagation();
-        var cursor = ZOOM_IN_CURSOR ? ZOOM_IN_CURSOR : 'n-resize';
-        $('#stream_video').css('cursor', '');
-        $('#stream_video').css('cursor', cursor);
-        $('#stream_video').data('cursor', 1);
-    });
-    
-    $(zoomOutButtonDom).on('click touchstart', function(e) {
-        e.stopPropagation();
-        var cursor = ZOOM_OUT_CURSOR ? ZOOM_OUT_CURSOR : 's-resize';
-        $('#stream_video').css('cursor', '');
-        $('#stream_video').css('cursor', cursor);
-        $('#stream_video').data('cursor', 2);
-    });
-    
-    $(zoomDefaultButtonDom).on('click touchstart', function(e) {
-        e.stopPropagation();
-        $('#stream_video').css('cursor', '');
-
-        default_zoom($(player.children()).first());
-    });
-    
-    $(zoomInButtonDom).add(zoomOutButtonDom).add(zoomDefaultButtonDom).on('mouseenter', function(e) {
-        $(this).css('cursor', 'pointer');
-    });
-    
-    $(zoomInButtonDom).add(zoomOutButtonDom).add(zoomDefaultButtonDom).on('mouseleave', function(e) {
-        $(this).css('cursor', 'default');
-    });
-
-    /***********************/
-    /* VIDEO ZOOM HANDLERS */
-    /***********************/
-    
-    player.on('click', function(event) {
-        if (Number.isInteger($('#stream_video').data('cursor'))) {
-            event.preventDefault();
-
-            // zoom according to which zoom option was picked
-            callZoomFunction(event);
-        }   
-    });
-    
-    // for mobile 
-    player.on('touchstart', function(event) {
-        if (Number.isInteger($('#stream_video').data('cursor'))) { 
-            
-            // call zoom function with mouse pointer coordinates for mobile
-            callZoomFunction(event, event.touches[0].pageX, event.touches[0].pageY);
-            
-            // prevent video pause / resume
-            if(player.paused()){
-                player.play();
-            }
-            else{
-                player.pause();
-            }
-        }
-    });
-    
-    // picks zoom factor and calls zoom function
-    function callZoomFunction(event, pageX, pageY) {
-    
-        // $('#stream_video').removeClass('livestreaming-zoomin-cursor');
-        // $('#stream_video').removeClass('livestreaming-zoomout-cursor');
-        $('#stream_video').css('cursor', '');
-
-        // choose zoom factor
-        let zoomFactor = 0;
-        if ($('#stream_video').data('cursor') == 1) {
-            zoomFactor = -1 * SCALINGFACTOR;
-        }
-        if ($('#stream_video').data('cursor') == 2) {
-            zoomFactor = SCALINGFACTOR;
-        }
-        // call the zoom function
-        livestreaming_zoom(event, $(player.children()).first(), zoomFactor, pageX, pageY);
-        
-        if(player.paused()){
-            player.play();
-        }
-        else{
-            player.pause();
-        }
+        player.load();
+        player.play();
     }
-    
-    // cancel zoom if right mouse button clicked
-    player.on('contextmenu', function(e) {
-        if (Number.isInteger($('#stream_video').data('cursor'))) {
-            e.preventDefault();
-            $('#stream_video').removeClass('livestreaming-zoomin-cursor');
-            $('#stream_video').removeClass('livestreaming-zoomout-cursor');
-            $('#stream_video').data('cursor', null);
-        }
-    });
-    
-    /******************/
-    /* MISC FUNCTIONS */
-    /******************/
-    
-    player.on('canplay', function(event) {
-        $('.video-container').show();
-    });
-    
-    // reload player every 30 seconds
-    player.on('error', function(event) {
-        setTimeout(() => { 
-            player.reset();
-            player.src([
-                {
-                    src: PLAYER_URL,
-                    type: 'application/x-mpegurl'
-                },
-                {
-                    src: PLAYER_URL,
-                    type: 'application/dash+xml'
-                },
-            ]); 
-        }, 30000);
-    });
-    
+
+    function appendZoomInfo(videoWrapper) {
+        var zoomInfo = document.createElement('div');
+        zoomInfo.setAttribute('id', 'zoom-info-main');
+        zoomInfo.innerText = $('#zoom-info').val();
+        videoWrapper.insertBefore(zoomInfo, document.getElementById('stream_video'));
+    }
+
+    /*********/
+    /* MISC */
+    /********/
+
     // Blubber Modifications
     if (STUDIP_VERSION < 4.5 && STUDIP.Blubber) {
         // Extend the Blubber 
@@ -235,48 +115,4 @@ $(function(){
             $('#current_posts_count').val(new_posts_count);
         }
     }
-});
-/***************************************/
-/* ZOOM IN AND OUT FUNCTIONS FOR VIDEO */
-/***************************************/
-
-// trigger zoom only when shift button is pressend when user is scrolling
-$('#stream_video').on('wheel', function(e) {
-    if (e.shiftKey) {
-        livestreaming_zoom(e, this);
-    }
-});
-
-// scale the video according to scroll direction and move towards mouse position
-function livestreaming_zoom(e, elem, zoomFactor, pageX, pageY) {
-    e.preventDefault();
-    $(elem).parent().data('cursor', null);
-
-    let oldScale = scale; 
-    
-    let posX = pageX ? pageX : e.pageX;
-    let posY = pageY ? pageY : e.pageY;
-    
-    let top = posY - $(elem).parent().offset().top;
-    let left = posX - $(elem).parent().offset().left;
-    let centerY = $(elem).height() / 2;
-    let centerX = $(elem).width() / 2;
-
-    scale += zoomFactor ? zoomFactor * -0.01 : event.deltaY * -0.01;
-    scale = Math.min(Math.max(.125, scale), 4);
-    
-    left = parseInt($(elem).css('left')) + (centerX - left) * (scale - oldScale);
-    top = parseInt($(elem).css('top')) + (centerY - top) * (scale - oldScale);
-
-    $(elem).css('top', top);
-    $(elem).css('left', left);
-
-    $(elem).css('transform', `scale(${scale})`);
 };
-
-function default_zoom(elem) {
-    $(elem).css('transform', 'scale(1.0)');
-    $(elem).css('top', 0);
-    $(elem).css('left', 0);
-    scale = 1;
-}

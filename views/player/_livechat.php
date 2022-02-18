@@ -17,7 +17,7 @@
 	</div>
 <? else: ?>
 	<div id="blubber-index">
-		<div class="blubber_panel"
+		<div class="blubber_panel vueinstance"
 				data-active_thread="<?= htmlReady($thread->getId()) ?>"
 				data-thread_data="<?= htmlReady(json_encode($thread->getJSONData() ?: ['thread_posting' => []])) ?>"
 				data-threads_more_down=""

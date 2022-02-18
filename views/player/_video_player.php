@@ -2,7 +2,9 @@
     <div class="video-container">
         <video 
             id="stream_video"
-            class="video-js vjs-default-skin"
+            class="op-player__media"
+            playsinline
+            controls
         >
             <source id="video_source_1" src="<?= $player_url ?>" type='application/x-mpegurl' />
             <source id="video_source_2" src="<?= $player_url ?>" type='application/dash+xml' />
@@ -13,31 +15,27 @@
                                 Sollte dies nicht der Fall sein können Sie den Player manuell neu laden.') ?></p>
         </div>
         
-        <? if (Navigation::hasItem("/community/blubber") && $thread && $chat_active): ?>
-            <?= $this->render_partial("player/_livechat.php") ?>
-        <? endif ?>
-        
     </div>
-    
-    <div class="zoom-info">
-        <input type="hidden" id="zoom_info"
-            value="<?= $plugin->_('Um das Video zu vergrößern/verkleinern, 
-                    halten Sie die Shift-Taste gedrückt und 
-                    benutzen Sie das Mausrad, oder nutzen Sie 
-                    die Funktionen in der Kontrollzeile') ?>">
-    </div>
-                                        
-    <?= \Icon::create('search+add', 'info_alt', ['title' => _('Vergrößern'), 'class' => 'livestreaming-zoomin'])->asImg(16) ?>
-    <?= \Icon::create('search+remove', 'info_alt', ['title' => _('Verkleinern'), 'class' => 'livestreaming-zoomout'])->asImg(16) ?>
-    <?= \Icon::create('search', 'info_alt', ['title' => _('Standardgröße wiederherstellen'), 'class' => 'livestreaming-zoomdefault'])->asImg(16) ?>
 
     <div class="zoom-styles">
-        <input type="hidden" id="livestreaming_zoomin_cursor" value="url('<?= \Icon::create('search+add', 'info_alt')->asImagePath() ?>'), auto">
-        <input type="hidden" id="livestreaming_zoomout_cursor" value="url('<?= \Icon::create('search+remove', 'info_alt')->asImagePath() ?>'), auto">
-        <input type="hidden" id="livestreaming_zoomdefault_cursor" value="url('<?= \Icon::create('search', 'info_alt')->asImagePath() ?>'), auto">
+        <?= \Icon::create('search+add', 'info_alt', ['title' => _('Vergrößern'), 'id' => 'livestreaming-zoomin'])->asImg(16) ?>
+        <?= \Icon::create('search+add', 'info', ['title' => _('Vergrößern'), 'id' => 'livestreaming-zoomin-overlay'])->asImg(16) ?>
+        <?= \Icon::create('search+remove', 'info_alt', ['title' => _('Verkleinern'), 'id' => 'livestreaming-zoomout'])->asImg(16) ?>
+        <?= \Icon::create('search+remove', 'info', ['title' => _('Verkleinern'), 'id' => 'livestreaming-zoomout-overlay'])->asImg(16) ?>
+        <?= \Icon::create('search', 'info_alt', ['title' => _('Zoomen'), 'id' => 'livestreaming-zoomdefault'])->asImg(16) ?>
+        <?= \Icon::create('checkbox-unchecked', 'info_alt', ['title' => _('Zoom zurücksetzen'), 'id' => 'livestreaming-zoomreset'])->asImg(16) ?>
+        <input type="hidden" id="zoom-info"
+            value="<?= $plugin->_('Um das Video zu vergrößern/verkleinern, nutzen Sie die Funktionen in der Kontrollzeile oder die oberen Buttons.') ?>">
     </div>
     <div class="player-info">
         <input type="hidden" id="player_url" value="<?= $player_url ?>">
         <input type="hidden" id="studip_version" value="<?= StudipVersion::getStudipVersion(true) ?>">
     </div>
 </section>
+<? if (Navigation::hasItem("/community/blubber") && $thread && $chat_active): ?>
+    <section>
+        <div class="blubber-container">
+            <?= $this->render_partial("player/_livechat.php") ?>
+        </div>
+    </section>
+<? endif ?>
