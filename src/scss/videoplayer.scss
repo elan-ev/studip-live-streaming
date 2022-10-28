@@ -2,7 +2,7 @@
 
 section {
     .video-container {
-        #stream_video {
+        .stream-video {
             margin: auto;
         }
 
@@ -22,19 +22,33 @@ section {
         }
 
         #blubber_threads > .posting > .avatar {
-           display: none !important;
+            display: none !important;
         }
 
         #blubber_threads > .posting > .content_column {
             padding-left: 15px !important;
-         }
+        }
 
         .blubber_thread .writer > textarea {
             width: calc(100% - 140px) !important;
         }
     }
+
+    &.blubber-section {
+        margin-top: 3em;
+    }
+
+    &.oc-player-section {
+        margin: 2em 0;
+        &:first-of-type {
+            margin-top: 0;
+        }
+        &:last-of-type {
+            margin-bottom: 0;
+        }
+    }
 }
-#stream_video {
+.stream-video {
     width: auto;
     height: auto;
     display: block;
@@ -71,7 +85,7 @@ section {
     display: none;
 }
 
-#zoom-info-main {
+.zoom-info-main {
     display: none;
     color: silver;
     text-align: center;

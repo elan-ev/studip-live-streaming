@@ -10,13 +10,13 @@
             </form>
         <?endif;?>
         <div class="livestream-mode-selection">
-            <div data-mode="default" class="<?= ($select_mode) ? 'selectable' : '' ?> <?= ( $mode == MODE_DEFAULT ) ? 'active' : '' ?>">
+            <div data-mode="default" class="<?= ($select_mode) ? 'selectable' : '' ?> <?= ( $mode == LiveStreamLib::MODE_DEFAULT ) ? 'active' : '' ?>">
                 <h3><?= $plugin->_('Live Streaming von Zuhause') ?></h3>
                 <br>
                 <p><?= $plugin->_('Sie können mit OBS Studio oder anderer Software selber einen Live-Stream für ihre Studierenden senden.') ?></p>
             </div>
             <? if($select_mode): ?>
-                <div data-mode="opencast" class="<?= ($select_mode) ? 'selectable' : '' ?> <?= ( $mode == MODE_OPENCAST ) ? 'active' : '' ?>">
+                <div data-mode="opencast" class="<?= ($select_mode) ? 'selectable' : '' ?> <?= ( $mode == LiveStreamLib::MODE_OPENCAST ) ? 'active' : '' ?>">
                     <h3><?= $plugin->_('Live Streaming mit Opencast aus dem Hörsaal') ?></h3>
                     <br>
                     <p><?= $plugin->_('Während ihrer Vorlesung wird automatisch der Live-Stream für ihre Studierenden angezeigt.') ?></p>
@@ -38,7 +38,7 @@
                 <?= Studip\Button::create(_('Speichern'))?>
             </footer>
         </form>
-        <? if($mode == MODE_DEFAULT ): ?>
+        <? if($mode == LiveStreamLib::MODE_DEFAULT ): ?>
             <hr>
             <form class="default" action="<?= PluginEngine::getLink('LiveStreaming/player/toggle_countdown') ?>" method="post">
                 <?= CSRFProtection::tokenTag() ?>
@@ -92,10 +92,10 @@
             </form>
         <?endif;?>
         <hr>
-        <? if($mode == MODE_DEFAULT): ?>
+        <? if($mode == LiveStreamLib::MODE_DEFAULT): ?>
             <?= $this->render_partial('player/_teacher_info') ?>
         <?endif;?>
-        <? if($mode == MODE_OPENCAST): ?>
+        <? if($mode == LiveStreamLib::MODE_OPENCAST): ?>
             <?= $this->render_partial('player/_teacher_oc_info') ?>
         <?endif;?>
     </div>

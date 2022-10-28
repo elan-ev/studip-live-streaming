@@ -14,70 +14,87 @@ window.OpenPlayerJS = OpenPlayerJS;
 import opOptions from './lib/openplayer-options';
 import opSetupZoom from './lib/openplayer-zoom';
 
-
 window.onload = function() {
-    const PLAYER_URL = $('input[type="hidden"]#player_url').val();
-    const STUDIP_VERSION = parseFloat($('input[type="hidden"]#studip_version').val());
-    // Zoom icons from DOM.
-    const ZOOM_IN_ICON = document.getElementById('livestreaming-zoomin');
-    const ZOOM_IN_OVERLAY_ICON = document.getElementById('livestreaming-zoomin-overlay');
-    const ZOOM_OUT_ICON = document.getElementById('livestreaming-zoomout');
-    const ZOOM_OUT_OVERLAY_ICON = document.getElementById('livestreaming-zoomout-overlay');
-    const ZOOM_DEFAULT_ICON = document.getElementById('livestreaming-zoomdefault');
-    const ZOOM_RESET_ICON = document.getElementById('livestreaming-zoomreset');
 
-    let zooms = {
-        in: ZOOM_IN_ICON,
-        in_overlay: ZOOM_IN_OVERLAY_ICON,
-        out: ZOOM_OUT_ICON,
-        out_overlay: ZOOM_OUT_OVERLAY_ICON,
-        default: ZOOM_DEFAULT_ICON,
-        reset: ZOOM_RESET_ICON
-    };
+    var videosections = document.getElementsByClassName('video-section');
+    const MULTI_PLAYER = videosections.length;
+    if (videosections.length) {
+        setTimeout(function() {
+            for (let section of videosections) {
+                initSection(section);
+            }
+        }, 300, videosections);
+    }
 
-    let player = new OpenPlayerJS('stream_video', opOptions);
-    opSetupZoom(player, zooms);
+    function initSection(section) {
+        var player_index = section.dataset.playe_index;
+        if (player_index == undefined) {
+            return;
+        }
+        var player_url_input = document.getElementById(`player_url_${player_index}`);
+        if (player_url_input == undefined) {
+            return;
+        }
+        var player_url = player_url_input.value;
+        // Zoom icons from DOM.
+        var zoom_in_icon = document.getElementById(`livestreaming-zoomin_${player_index}`);
+        var zoom_in_overlay_icon = document.getElementById(`livestreaming-zoomin-overlay_${player_index}`);
+        var zoom_out_icon = document.getElementById(`livestreaming-zoomout_${player_index}`);
+        var zoom_out_overlay_icon = document.getElementById(`livestreaming-zoomout-overlay_${player_index}`);
+        var zoom_default_icon = document.getElementById(`livestreaming-zoomdefault_${player_index}`);
+        var zoom_reset_icon = document.getElementById(`livestreaming-zoomreset_${player_index}`);
 
-    player.init();
-    // player.play();
+        var zooms = {
+            in: zoom_in_icon,
+            in_overlay: zoom_in_overlay_icon,
+            out: zoom_out_icon,
+            out_overlay: zoom_out_overlay_icon,
+            default: zoom_default_icon,
+            reset: zoom_reset_icon
+        };
+        
+        var player = new OpenPlayerJS(`stream_video_${player_index}`, opOptions);
+        opSetupZoom(player, zooms);
 
-    appendZoomInfo(player.getContainer());
-   
-    document.getElementById('player-reload-btn').addEventListener("click", function(e) {
-        e.preventDefault();
-        resetPlayer();
-    });
+        player.init();
+        // player.play();
 
-    player.getElement().addEventListener('playererror', function(e) {
-        console.log('Fail to load stream!');
-        setTimeout(() => { 
-            resetPlayer();
-        }, 30000);
-    });
+        appendZoomInfo(player.getContainer(), player_index);
 
-    // When the hls is loaded. 
-    player.getElement().addEventListener('hlsManifestLoaded', function(e) {
-        // Remove the zoom info text.
-        $('#zoom-info-main').show();
-    });
+        document.getElementById(`player-reload-btn_${player_index}`).addEventListener("click", function(e) {
+            e.preventDefault();
+            resetPlayer(player_index, player_url);
+        }, player_index, player_url);
 
-    player.getElement().addEventListener('controlshidden', function(e) {
-        $('#zoom-info-main').hide();
-    });
+        player.getElement().addEventListener('playererror', function(e) {
+            // We want to reload only when, there is one player!
+            if (MULTI_PLAYER == 1) {
+                setTimeout(() => {
+                    resetPlayer(player_index, player_url);
+                }, 30000, player_index, player_url);
+            }
+        }, player_index, player_url);
 
-    /*************/
-    /* FUNCTIONS */
-    /*************/
+        // When the hls is loaded. 
+        player.getElement().addEventListener('hlsManifestLoaded', function(e) {
+            // Remove the zoom info text.
+            $(`#zoom-info-main_${player_index}`).show();
+        }, player_index);
 
-    function resetPlayer() {
-        var player = OpenPlayerJS.instances['stream_video'];
+        player.getElement().addEventListener('controlshidden', function(e) {
+            $(`#zoom-info-main_${player_index}`).hide();
+        }, player_index);
+    }
+
+    function resetPlayer(player_index, player_url) {
+        var player = OpenPlayerJS.instances[`stream_video_${player_index}`];
         player.src = [
             {
-                src: PLAYER_URL,
+                src: player_url,
                 type: 'application/x-mpegurl'
             },
             {
-                src: PLAYER_URL,
+                src: player_url,
                 type: 'application/dash+xml'
             },
         ];
@@ -86,11 +103,12 @@ window.onload = function() {
         player.play();
     }
 
-    function appendZoomInfo(videoWrapper) {
+    function appendZoomInfo(videoWrapper, player_index) {
         var zoomInfo = document.createElement('div');
-        zoomInfo.setAttribute('id', 'zoom-info-main');
-        zoomInfo.innerText = $('#zoom-info').val();
-        videoWrapper.insertBefore(zoomInfo, document.getElementById('stream_video'));
+        zoomInfo.setAttribute('id', `zoom-info-main_${player_index}`);
+        zoomInfo.setAttribute('class', 'zoom-info-main');
+        zoomInfo.innerText = $(`#zoom-info_${player_index}`).val();
+        videoWrapper.insertBefore(zoomInfo, document.getElementById(`stream_video_${player_index}`));
     }
 
     /*********/
@@ -98,6 +116,7 @@ window.onload = function() {
     /********/
 
     // Blubber Modifications
+    let STUDIP_VERSION = parseFloat($('input[type="hidden"]#studip_version').val());
     if (STUDIP_VERSION < 4.5 && STUDIP.Blubber) {
         // Extend the Blubber 
         STUDIP.Blubber.handleScrollForLiveStream = function (new_posts_count) {

@@ -53,11 +53,11 @@ class AdminController extends PluginController {
         $this->oc_player_url        = $livestream_config['oc_player_url'];
         $this->opencast_installed   = $this->plugin->checkOpenCast();
 
-        $this->url_placeholder  = URLPLACEHOLDER;
+        $this->url_placeholder  = LiveStreamLib::URLPLACEHOLDER;
 
     }
 
-     /**
+    /**
     * Inserts new player data or updates old data (streaming url, username, password)
     */
     public function admin_change_playerdata_action()
@@ -108,8 +108,8 @@ class AdminController extends PluginController {
                 //Clear all course in order to avoid conflict
                 $livestreams = LiveStream::findAll();
                 foreach ($livestreams as $livestream) {
-                    if ($livestream->mode == MODE_OPENCAST) {
-                        $livestream->mode = MODE_DEFAULT;
+                    if ($livestream->mode == LiveStreamLib::MODE_OPENCAST) {
+                        $livestream->mode = LiveStreamLib::MODE_DEFAULT;
                         $livestream->store();
                     }
                 }
@@ -123,7 +123,7 @@ class AdminController extends PluginController {
 
     private function checkUrl($url) {
         $res = true;
-        if (!filter_var($url, FILTER_VALIDATE_URL) || strpos($url, URLPLACEHOLDER) === FALSE) {
+        if (!filter_var($url, FILTER_VALIDATE_URL) || strpos($url, LiveStreamLib::URLPLACEHOLDER) === FALSE) {
             $res = false;
         }
         return $res;

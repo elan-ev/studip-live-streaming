@@ -37,10 +37,13 @@ $(function(){
     }
 
     if ($('.live-countdown').is(':visible')) {
-        var live_countdown = setInterval(function() {
-            var end_timestamp = $('.live-countdown').data('end') * 1000;
-            $('.live-countdown').text(getCountdown(end_timestamp));
-        }, 1000);
+        $('.live-countdown').each(function() {
+            var end_time = $(this).data('end') * 1000;
+            var elm = this;
+            setInterval(function() {
+                $(elm).text(getCountdown(end_time));
+            }, 1000, elm, end_time);
+        });
     }
 
     if ($('.livestream-mode-selection .selectable').is(':visible')) {

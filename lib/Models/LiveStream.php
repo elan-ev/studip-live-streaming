@@ -39,7 +39,7 @@ class LiveStream extends \SimpleORMap
         \Config::get()->store('LS_CONFIG', json_encode($configs));
     }
 
-     /**
+    /**
      * Finds all livestreams.
      *
      * @return LiveStream[]
