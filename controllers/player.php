@@ -32,7 +32,7 @@ class PlayerController extends PluginController {
         if (!$livestream) {
             $livestream = new LiveStream();
             $livestream->seminar_id = Context::getId();
-            $livestream->mode = MODE_DEFAULT;
+            $livestream->mode = LiveStreamLib::MODE_DEFAULT;
             $livestream->store();
         }
 
@@ -40,9 +40,10 @@ class PlayerController extends PluginController {
 
         if ($this->plugin->checkOpenCast(Context::getId()) && $livestream_config['oc_player_url']) {
             $this->select_mode = true;
-        } else if ($mode == MODE_OPENCAST) { // forcing the mode to DEFAULT when the opencast is not activated/configured properly
-            $mode = MODE_DEFAULT;
-            $livestream->mode = MODE_DEFAULT;
+        } else if ($mode == LiveStreamLib::MODE_OPENCAST) { 
+            // Forcing the mode to DEFAULT when the opencast is not activated/configured properly
+            $mode = LiveStreamLib::MODE_DEFAULT;
+            $livestream->mode = LiveStreamLib::MODE_DEFAULT;
             $livestream->store();
         }
 
@@ -54,7 +55,7 @@ class PlayerController extends PluginController {
         $options = json_decode($livestream->options);
         $terminate_session = 0;
         $livechat = 0;
-           
+
         if ($options) {
             if ($options->livechat) {
                 $livechat = intval($options->livechat->active);
@@ -66,11 +67,19 @@ class PlayerController extends PluginController {
 
         $this->chat_active = $livechat;
 
-        if ($mode == MODE_DEFAULT) {
+        if ($mode == LiveStreamLib::MODE_DEFAULT) {
             $this->player_username  = $livestream_config['loginname'];
             $this->player_password  = $livestream_config['password'];
-            $this->sender_url       = str_replace(URLPLACEHOLDER, Context::getId(), $this->lowercaseURLProtocol($livestream_config['sender_url']));
-            $this->player_url       = str_replace(URLPLACEHOLDER, Context::getId(), $this->lowercaseURLProtocol($livestream_config['player_url']));
+            $this->sender_url       = str_replace(
+                                        LiveStreamLib::URLPLACEHOLDER,
+                                        Context::getId(),
+                                        $this->lowercaseURLProtocol($livestream_config['sender_url'])
+                                    );
+            $this->player_url       = str_replace(
+                                        LiveStreamLib::URLPLACEHOLDER,
+                                        Context::getId(),
+                                        $this->lowercaseURLProtocol($livestream_config['player_url'])
+                                    );
 
             $this->countdown_activated = intval($livestream->countdown_activated);
             
@@ -81,7 +90,9 @@ class PlayerController extends PluginController {
                     $this->next_livestream = intval($livestream->session_start);
                     $this->next_livestream_end = intval($livestream->session_end);
                     if ($this->next_livestream_end < strtotime('now')) {
-                        PageLayout::postWarning($this->plugin->_('Die Countdown-Zeit ist abgelaufen. Bitte versuchen Sie, den Termin zu erneuern.'));
+                        PageLayout::postWarning(
+                            $this->plugin->_('Die Countdown-Zeit ist abgelaufen. Bitte versuchen Sie, den Termin zu erneuern.')
+                        );
                     } else if ($this->next_livestream_end > strtotime('now') && $this->next_livestream < strtotime('now')) {
                         PageLayout::postInfo($this->plugin->_('Live-Streaming läuft derzeit.'));
                     }
@@ -93,25 +104,23 @@ class PlayerController extends PluginController {
             $this->sem_next_session = Seminar::getInstance(Context::getId())->getNextDate();
         }
 
-        if ($mode == MODE_OPENCAST) {
-            $refresh_in_seconds = REFRESH_INTERVALS;
-            if ($todays_session = get_course_session_from_today(Context::getId())) {
-                if (isset($todays_session[LIVE])) {
+        if ($mode == LiveStreamLib::MODE_OPENCAST) {
+            list($todays_session, $refresh_in_seconds) = LiveStreamLib::getOCScheduledSession(Context::getId());
+            if (!empty($todays_session)) {
+                if (isset($todays_session[LiveStreamLib::LIVE]) && !empty($todays_session[LiveStreamLib::LIVE])) {
                     $this->show_live_countdown = true;
-                    $refresh_in_seconds = $todays_session[LIVE]['refresh_seconds'];
-                    $this->live_termin = $todays_session[LIVE]['termin'];
+                    $this->live_termine = $todays_session[LiveStreamLib::LIVE];
                 }
-    
-                if (isset($todays_session[PENDING])) {
-                    if (!isset($todays_session[LIVE])) {
-                        $refresh_in_seconds = $todays_session[PENDING]['refresh_seconds'];
-                    }
+
+                if (isset($todays_session[LiveStreamLib::PENDING])) {
                     $this->show_countdown = true;
-                    $this->upcoming_termin = $todays_session[PENDING]['termin']->date;
+                    $this->upcoming_termin = $todays_session[LiveStreamLib::PENDING]['termin']->date;
                 }
                 $this->response->add_header('Refresh', $refresh_in_seconds);
             } else {
-                $this->info_message = MessageBox::info($this->plugin->_("Derzeit ist kein Live-Stream für diese Sitzung verfügbar."));
+                $this->info_message = MessageBox::info(
+                    $this->plugin->_("Derzeit ist kein Live-Stream für diese Sitzung verfügbar.")
+                );
             }
         }
 
@@ -127,7 +136,7 @@ class PlayerController extends PluginController {
         $mode  = Request::get('livestream-mode');
 
         $error = false;
-        if ($mode != MODE_DEFAULT && $mode != MODE_OPENCAST) {
+        if ($mode != LiveStreamLib::MODE_DEFAULT && $mode != LiveStreamLib::MODE_OPENCAST) {
             PageLayout::postError($this->plugin->_('Mode ist ungültig.'));
             $error = true;
         }
@@ -162,15 +171,22 @@ class PlayerController extends PluginController {
         $mode = $livestream->mode;
         $options = json_decode($livestream->options);
         $error = false;
-        if ($mode != MODE_DEFAULT && $mode != MODE_OPENCAST || !$livestream) {
+        if ($mode != LiveStreamLib::MODE_DEFAULT && $mode != LiveStreamLib::MODE_OPENCAST || !$livestream) {
             $error = true;
         }
 
-        if ($mode == MODE_DEFAULT) {
+        $this->mode = $mode;
+        // Default Mode.
+        if ($mode == LiveStreamLib::MODE_DEFAULT) {
             $this->show_player = true;
-            $this->player_url = str_replace(URLPLACEHOLDER, Context::getId(), $this->lowercaseURLProtocol($livestream_config['player_url']));
-            $this->mode = $mode;
-            
+            $this->player_url = str_replace(
+                                    LiveStreamLib::URLPLACEHOLDER,
+                                    Context::getId(),
+                                    $this->lowercaseURLProtocol($livestream_config['player_url'])
+                                );
+            // Now that we provide multiply players in a page, we need to set the player index.
+            // In this case (from home!), only one is possible.
+            $this->player_index = 0;
             // countdown
             $next_date_livestream = Seminar::getInstance(Context::getId())->getNextDate();
             if (intval($livestream->countdown_activated) == 1) {
@@ -196,36 +212,42 @@ class PlayerController extends PluginController {
                 }
             }
         } else {
-
-            $refresh_in_seconds = REFRESH_INTERVALS;
+            // Opencast Mode.
+            list($todays_session, $refresh_in_seconds) = LiveStreamLib::getOCScheduledSession(Context::getId());
             if (!$livestream_config['oc_player_url'] ||
                     !$this->plugin->checkOpenCast(Context::getId()) ||
-                        !$todays_session = get_course_session_from_today(Context::getId())) {
+                        !$todays_session) {
                 $error = true;
             }
 
-            if (isset($todays_session[LIVE])) {
+            if (isset($todays_session[LiveStreamLib::LIVE]) && !empty($todays_session[LiveStreamLib::LIVE])) {
                 $this->show_player = true;
-                $refresh_in_seconds = $todays_session[LIVE]['refresh_seconds'];
-                $this->termin = $todays_session[LIVE]['termin'];
-                $this->player_url = str_replace(URLPLACEHOLDER, $todays_session[LIVE]['capture_agent'], $this->lowercaseURLProtocol($livestream_config['oc_player_url']));
+                $this->live_termine = $todays_session[LiveStreamLib::LIVE];
+                foreach ($todays_session[LiveStreamLib::LIVE] as $session) {
+                    $player = [];
+                    $player['url'] = str_replace(
+                                        LiveStreamLib::URLPLACEHOLDER,
+                                        $session['capture_agent'],
+                                        $this->lowercaseURLProtocol($livestream_config['oc_player_url'])
+                                    );
+                    $player['room_name'] = $session['room_name'];
+                    $this->oc_players[] = $player;
+                }
             }
 
-            if (isset($todays_session[PENDING])) {
-                if (!isset($todays_session[LIVE])) {
-                    $refresh_in_seconds = $todays_session[PENDING]['refresh_seconds'];
-                }
+            if (isset($todays_session[LiveStreamLib::PENDING])) {
                 $this->show_countdown = true;
-                $this->upcoming_termin = $todays_session[PENDING]['termin']->date;
+                $this->upcoming_termin = $todays_session[LiveStreamLib::PENDING]['termin']->date;
             }
             $this->response->add_header('Refresh', $refresh_in_seconds);
         }
 
         // NOTE:Live-Chat appears when the show_player is true only.
         if ($this->show_player == true) {
-            PageLayout::addStylesheet($this->plugin->getPluginURL() . '/assets/css/videoplayer.css');
-            PageLayout::addScript($this->plugin->getPluginURL() . '/assets/javascripts/videoplayer.js');
-            
+            $plugin_version = $this->plugin->getLiveStreamingVersion();
+            PageLayout::addStylesheet($this->plugin->getPluginURL() . '/assets/css/videoplayer.css?v=' . $plugin_version);
+            PageLayout::addScript($this->plugin->getPluginURL() . '/assets/javascripts/videoplayer.js?v=' . $plugin_version);
+
             if (StudipVersion::olderThan('4.5')) {
                 $blubber = new Blubber();
                 PageLayout::addScript("{$blubber->getPluginURL()}/assets/javascripts/autoresize.jquery.min.js");
@@ -244,10 +266,10 @@ class PlayerController extends PluginController {
                 if (StudipVersion::olderThan('4.5')) {
                     $this->thread           = $this->getBlubberThreadOldStudip($next_date_formatted);
                     $this->course_id        = Context::getId();
-	                $this->single_thread    = true;
-	                BlubberPosting::$course_hashes = (
-	                	$this->thread['user_id'] !== $this->thread['Seminar_id'] ? $this->thread['Seminar_id'] : false
-	                );
+                    $this->single_thread    = true;
+                    BlubberPosting::$course_hashes = (
+                        $this->thread['user_id'] !== $this->thread['Seminar_id'] ? $this->thread['Seminar_id'] : false
+                    );
                 } else {
                     $this->thread = $this->getBlubberThread($next_date_formatted);
                 }
@@ -273,7 +295,7 @@ class PlayerController extends PluginController {
         $livestream = LiveStream::find(Context::getId());
         $mode = $livestream->mode;
         
-        if ($mode != MODE_DEFAULT) {
+        if ($mode != LiveStreamLib::MODE_DEFAULT) {
             PageLayout::postError($this->plugin->_('Mode ist ungültig.'));
         } else {
             $countdown_active = Request::get('countdown_active') ? 1 : 0;
@@ -321,7 +343,7 @@ class PlayerController extends PluginController {
         }
         $this->redirect('player/teacher');
     }
-    
+
     /**
     * Toggles the live chat for normal live streaming.
     */
@@ -337,7 +359,7 @@ class PlayerController extends PluginController {
         $mode = $livestream->mode;
         
         // Providing Live-Chat for both modes.
-        if ($mode != MODE_DEFAULT && $mode != MODE_OPENCAST) {
+        if ($mode != LiveStreamLib::MODE_DEFAULT && $mode != LiveStreamLib::MODE_OPENCAST) {
             PageLayout::postError($this->plugin->_('Mode ist ungültig.'));
         } else {
             $chat_active = Request::get('chat_active') ? 1 : 0;
@@ -394,7 +416,7 @@ class PlayerController extends PluginController {
             $time_zone
         );
     }
-    
+
     /**
     * Finds the blubber thread corresponding to the specific livestream
     * identified by date. Creates a blubber thread if it does not exist.
@@ -458,8 +480,8 @@ class PlayerController extends PluginController {
         $return_thread = null;
     
         $thread = BlubberPosting::findBySQL(
-        	"Seminar_id = ? AND user_id = ?", 
-        	[Context::getId(), 'Livestream_' . $formatted_date]
+            "Seminar_id = ? AND user_id = ?", 
+            [Context::getId(), 'Livestream_' . $formatted_date]
         );
 
         if (!$thread) {
@@ -475,11 +497,11 @@ class PlayerController extends PluginController {
         }
         
         $return_thread = BlubberPosting::findBySQL(
-        	"Seminar_id = ? AND user_id = ?", 
-        	[Context::getId(), 'Livestream_' . $formatted_date]
+            "Seminar_id = ? AND user_id = ?", 
+            [Context::getId(), 'Livestream_' . $formatted_date]
         )[0];
-	    
-	    return $return_thread;
+
+        return $return_thread;
     }
     
     /**

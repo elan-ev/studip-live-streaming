@@ -36,7 +36,7 @@ opOptions.showLoaderOnInit = true;
 opOptions.defaultLevel = null;
 
 // Callback for error.
-// opOptions.onError = (e) => console.error('Failed to load stream!');
+opOptions.onError = (e) => console.error('Failed to load stream!');
 
 // Player width. (string with unit ("100%", "350px") or number of pixels)
 opOptions.width = 0;

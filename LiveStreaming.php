@@ -10,7 +10,6 @@
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
  */
-require_once __DIR__ . '/lib/locallib.inc.php';
 
 class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
 {
@@ -27,7 +26,8 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
         bind_textdomain_codeset(static::GETTEXT_DOMAIN, 'UTF-8');
         
         StudipAutoloader::addClassLookups([
-            'LiveStream'        => __DIR__ . '/lib/LiveStream.php',
+            'LiveStream' => __DIR__ . '/lib/Models/LiveStream.php',
+            'LiveStreamLib' => __DIR__ . '/lib/LiveStreamLib.php',
         ]);
 
         if ($perm->have_perm('admin')) {
@@ -133,9 +133,10 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
             $blubber = new Blubber();
             $blubber->addStylesheet('assets/stylesheets/blubber.less');
         }
-    
-        PageLayout::addStylesheet($this->getPluginURL() . '/assets/css/livestream.css');
-        PageLayout::addScript($this->getPluginURL() . '/assets/javascripts/livestream.js');
+
+        $plugin_version = $this->getLiveStreamingVersion();
+        PageLayout::addStylesheet($this->getPluginURL() . '/assets/css/livestream.css?v=' . $plugin_version);
+        PageLayout::addScript($this->getPluginURL() . '/assets/javascripts/livestream.js?v=' . $plugin_version);
 
         parent::perform($unconsumed_path);
     }
@@ -229,5 +230,21 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
             return true;
         }
         return false;
+    }
+
+    /**
+     * Get the Plugin Version
+     *
+     * get the plugin manifest from PluginManager getPluginManifest method
+     *
+     * @return string plugin version
+     */
+    public function getLiveStreamingVersion()
+    {
+        $plugin_manager = \PluginManager::getInstance();
+        $this_plugin = $plugin_manager->getPluginInfo(__CLASS__);
+        $plugin_path = \get_config('PLUGINS_PATH') . '/' .$this_plugin['path'];
+        $manifest = $plugin_manager->getPluginManifest($plugin_path);
+        return $manifest['version'];
     }
 }

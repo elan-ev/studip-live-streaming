@@ -1,3 +1,4 @@
+<input type="hidden" id="studip_version" value="<?= StudipVersion::getStudipVersion(true) ?>">
 <? if (StudipVersion::olderThan('4.5')): ?>
 	<div class="chatbox-container">
 		<input type="hidden" id="current_posts_count" value="0">
