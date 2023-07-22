@@ -1,9 +1,9 @@
 pluginclassname=LiveStreaming
 pluginname=LiveStreaming
 origin=virtUOS
-version=1.4
+version=1.5
 studipMinVersion=4.2
-studipMaxVersion=5.2.99
+studipMaxVersion=5.3.99
 category=Kommunikation und Zusammenarbeit
 displayname=Studip Live Streaming
 summary=Video Player für Live-Streams und Videos
