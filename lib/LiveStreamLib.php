@@ -11,12 +11,12 @@
 
 class LiveStreamLib {
 
-    const URLPLACEHOLDER = '<id>';
-    const MODE_OPENCAST = 'opencast';
-    const MODE_DEFAULT = 'default';
-    const PENDING = 'before';
-    const LIVE = 'current';
-    const REFRESH_INTERVALS = 600; //EACH 10 mins TODO:Add to config (dynamic)
+    public const URLPLACEHOLDER = '<id>';
+    public const MODE_OPENCAST = 'opencast';
+    public const MODE_DEFAULT = 'default';
+    public const PENDING = 'before';
+    public const LIVE = 'current';
+    public const REFRESH_INTERVALS = 600; //EACH 10 mins TODO:Add to config (dynamic)
 
     /**
      * Gets the scheduled session of today matching with opencast records.
@@ -29,7 +29,7 @@ class LiveStreamLib {
 
         $today_timestamp = strtotime('today midnight');
         $where = "range_id = ? and date >= ? ORDER BY date ASC";
-        $session_coursedates = \CourseDate::findBySQL($where, [$course_id, $today_timestamp]);
+        $session_coursedates = CourseDate::findBySQL($where, [$course_id, $today_timestamp]);
 
         if (!$session_coursedates) {
             return [false, false];
@@ -87,14 +87,14 @@ class LiveStreamLib {
      * @param string $cid course id
      *
      * @return ?string the capture agent or false if no capture agent is available.
-     * @throws \Exception mostly PDOExceptions.
+     * @throws Exception mostly PDOExceptions.
      */
     private static function GetOCCaptureAgent($termin_id, $cid) {
         try {
-            $date = new \SingleDate($termin_id);
+            $date = new SingleDate($termin_id);
 
             // Check resources.
-            $oc_resource = \DBManager::get()->fetchOne(
+            $oc_resource = DBManager::get()->fetchOne(
                 'SELECT * FROM `oc_resources` WHERE `resource_id` = :resource_id',
                 [':resource_id' => $date->resource_id]
             );
@@ -105,7 +105,7 @@ class LiveStreamLib {
             $capture_agent = $oc_resource['capture_agent'];
 
             // Get the scheduled recordings for that capture agent from oc_scheduled_recordings.
-            $oc_scheduled_recording = \DBManager::get()->fetchOne(
+            $oc_scheduled_recording = DBManager::get()->fetchOne(
                 'SELECT * FROM oc_scheduled_recordings 
                     WHERE seminar_id = :cid AND date_id = :date_id AND capture_agent = :capture_agent AND status = :status',
                 [':cid' => $cid, 'date_id' => $termin_id, 'capture_agent' => $capture_agent, 'status' => 'scheduled']);
@@ -115,8 +115,8 @@ class LiveStreamLib {
                 return false;
             }
             return $oc_scheduled_recording['capture_agent'];
-        } catch (\Throwable $th) {
-            throw new \Exception('Geplante Aufzeichnung konnte nicht gefunden werden: ' . $th->getMessage());
+        } catch (Throwable $th) {
+            throw new Exception('Geplante Aufzeichnung konnte nicht gefunden werden: ' . $th->getMessage());
         }
     }
 }

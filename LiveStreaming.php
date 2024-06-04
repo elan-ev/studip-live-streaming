@@ -243,7 +243,7 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
     {
         $plugin_manager = \PluginManager::getInstance();
         $this_plugin = $plugin_manager->getPluginInfo(__CLASS__);
-        $plugin_path = \get_config('PLUGINS_PATH') . '/' .$this_plugin['path'];
+        $plugin_path = $this->getPluginPath();
         $manifest = $plugin_manager->getPluginManifest($plugin_path);
         return $manifest['version'];
     }

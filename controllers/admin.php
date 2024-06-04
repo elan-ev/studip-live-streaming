@@ -123,7 +123,7 @@ class AdminController extends PluginController {
 
     private function checkUrl($url) {
         $res = true;
-        if (!filter_var($url, FILTER_VALIDATE_URL) || strpos($url, LiveStreamLib::URLPLACEHOLDER) === FALSE) {
+        if (!filter_var($url, FILTER_VALIDATE_URL) || !str_contains($url, LiveStreamLib::URLPLACEHOLDER)) {
             $res = false;
         }
         return $res;

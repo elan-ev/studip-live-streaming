@@ -36,13 +36,13 @@ class AddTable extends Migration
 
             $statement = DBManager::get()->prepare($query);
 
-            $statement->execute(array(
+            $statement->execute([
                 ':field' => 'LS_CONFIG',
                 ':value' => '',
                 ':type'  => 'string',
-                ':description' => 'Konfiguration des LiveStreaming-Plugins im JSON Format',
-            ));
-        } catch (InvalidArgumentException $ex) {
+                ':description' => 'Konfiguration des LiveStreaming-Plugins im JSON Format']
+            );
+        } catch (InvalidArgumentException) {
 
         }
 

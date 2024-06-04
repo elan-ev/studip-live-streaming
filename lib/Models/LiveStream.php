@@ -9,7 +9,7 @@
  * the License, or (at your option) any later version.
  */
 
-class LiveStream extends \SimpleORMap
+class LiveStream extends SimpleORMap
 {
     static $config;
 
@@ -23,7 +23,7 @@ class LiveStream extends \SimpleORMap
     static function loadConfig()
     {
         if (!self::$config) {
-            self::$config = json_decode(\Config::get()->getValue('LS_CONFIG'), true);
+            self::$config = json_decode(Config::get()->getValue('LS_CONFIG'), true);
         }
     }
 
@@ -36,7 +36,7 @@ class LiveStream extends \SimpleORMap
 
     static function setConfig($configs)
     {
-        \Config::get()->store('LS_CONFIG', json_encode($configs));
+        Config::get()->store('LS_CONFIG', json_encode($configs));
     }
 
     /**
