@@ -42,7 +42,7 @@ class AddTable extends Migration
                 ':type'  => 'string',
                 ':description' => 'Konfiguration des LiveStreaming-Plugins im JSON Format']
             );
-        } catch (InvalidArgumentException) {
+        } catch (InvalidArgumentException $ex) {
 
         }
 
