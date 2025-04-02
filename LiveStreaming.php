@@ -4,7 +4,7 @@
  * LiveStreaming plugin class for Stud.IP
  *
  * @author    Viktoria Wiebe <vwiebe@uni-osnabrueck.de>
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -24,7 +24,7 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
         // set up translation domain
         bindtextdomain(static::GETTEXT_DOMAIN, $this->getPluginPath() . '/locale');
         bind_textdomain_codeset(static::GETTEXT_DOMAIN, 'UTF-8');
-        
+
         StudipAutoloader::addClassLookups([
             'LiveStream' => __DIR__ . '/lib/Models/LiveStream.php',
             'LiveStreamLib' => __DIR__ . '/lib/LiveStreamLib.php',
@@ -36,14 +36,14 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
                 Navigation::addItem('/admin/config/livestreaming', $item);
             }
         }
-        
+
         // set up blubber updating so new postings are automatically loaded
         if (StudipVersion::olderThan('4.5') && UpdateInformation::isCollecting()) {
             $data = Request::getArray("page_info");
             if (isset($data['Blubber'])) {
                 $output = array();
                 $stream = BlubberStream::getCourseStream($data['Blubber']['context_id']);
-            
+
                 $last_check = $data['server_timestamp'] ?: (time() - 5 * 60);
 
                 $new_postings = $stream->fetchNewPostings($last_check, time());
@@ -102,31 +102,31 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
     *
     * @param $course_id the given course ID
     */
-    public function getTabNavigation($course_id) 
+    public function getTabNavigation($course_id)
     {
         global $perm;
 
         if ($perm->have_studip_perm('admin', $course_id)) {
             $navigation = new Navigation($this->getPluginName(), PluginEngine::getURL('LiveStreaming/player/teacher'));
-            $navigation->addSubNavigation('teacher', 
+            $navigation->addSubNavigation('teacher',
                 new Navigation($this->_('Konfiguration'), PluginEngine::getURL('LiveStreaming/player/teacher')));
-            $navigation->addSubNavigation('student', 
+            $navigation->addSubNavigation('student',
                 new Navigation($this->_('Studierendenansicht'), PluginEngine::getURL('LiveStreaming/player/student')));
         } elseif ($perm->have_studip_perm('tutor', $course_id)) {
             $navigation = new Navigation($this->getPluginName(), PluginEngine::getURL('LiveStreaming/player/teacher'));
-            $navigation->addSubNavigation('teacher', 
+            $navigation->addSubNavigation('teacher',
                 new Navigation($this->_('Konfiguration'), PluginEngine::getURL('LiveStreaming/player/teacher')));
-            $navigation->addSubNavigation('student', 
+            $navigation->addSubNavigation('student',
                 new Navigation($this->_('Studierendenansicht'), PluginEngine::getURL('LiveStreaming/player/student')));
         } else {
             $navigation = new Navigation($this->getPluginName(), PluginEngine::getURL('LiveStreaming/player/student'));
-            $navigation->addSubNavigation('student', 
+            $navigation->addSubNavigation('student',
                 new Navigation($this->_('Live-Stream'), PluginEngine::getURL('LiveStreaming/player/student')));
         }
 
         return ['livestreaming' => $navigation];
     }
-    
+
     public function perform($unconsumed_path)
     {
         if (StudipVersion::olderThan('4.5')) {
@@ -175,7 +175,7 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
             'livestreaming',
             PluginEngine::getURL($this, [], $landing)
         );
-        
+
         $navigation->setImage(
             Icon::create('video2',
                     Icon::ROLE_INACTIVE,
@@ -218,7 +218,12 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
      * @return bool | array | string
     */
     function checkOpenCast($cid = null) {
-        $opencast_plugin = PluginEngine::getPlugin("OpenCast");
+        // Prioritize Opencast V3 then fallback to V2!
+        $opencast_plugin = PluginEngine::getPlugin("OpencastV3");
+        if (empty($opencast_plugin) || (!empty($cid) && empty($opencast_plugin->isActivated($cid)))) {
+            $opencast_plugin =  PluginEngine::getPlugin("OpenCast");
+        }
+
         if ($opencast_plugin) {
             if ($cid) {
                 if ($opencast_plugin->isActivated($cid)) {
