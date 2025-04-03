@@ -105,7 +105,7 @@ class PlayerController extends PluginController {
         }
 
         if ($mode == LiveStreamLib::MODE_OPENCAST) {
-            list($todays_session, $refresh_in_seconds) = LiveStreamLib::getOCScheduledSession(Context::getId());
+            [$todays_session, $refresh_in_seconds] = LiveStreamLib::getOCScheduledSession(Context::getId());
             if (!empty($todays_session)) {
                 if (isset($todays_session[LiveStreamLib::LIVE]) && !empty($todays_session[LiveStreamLib::LIVE])) {
                     $this->show_live_countdown = true;
@@ -213,7 +213,7 @@ class PlayerController extends PluginController {
             }
         } else {
             // Opencast Mode.
-            list($todays_session, $refresh_in_seconds) = LiveStreamLib::getOCScheduledSession(Context::getId());
+            [$todays_session, $refresh_in_seconds] = LiveStreamLib::getOCScheduledSession(Context::getId());
             if (!$livestream_config['oc_player_url'] ||
                     !$this->plugin->checkOpenCast(Context::getId()) ||
                         !$todays_session) {
@@ -330,7 +330,8 @@ class PlayerController extends PluginController {
             }
 
             // terminate_session
-            $options = json_decode($livestream->options) ? json_decode($livestream->options) : new \stdClass();
+            $options = json_decode($livestream->options) ?: new stdClass();
+            $options->termin = $options->termin ?: new stdClass();
             $options->termin->terminate_session = $terminate_session;
             $livestream->options = json_encode($options);
 
@@ -363,7 +364,8 @@ class PlayerController extends PluginController {
             PageLayout::postError($this->plugin->_('Mode ist ungültig.'));
         } else {
             $chat_active = Request::get('chat_active') ? 1 : 0;
-            $options = json_decode($livestream->options) ? json_decode($livestream->options) : new \stdClass();
+            $options = json_decode($livestream->options) ?: new stdClass();
+            $options->livechat = $options->livechat ?: new stdClass();
             $options->livechat->active = $chat_active;
             $livestream->options = json_encode($options);
             
@@ -513,7 +515,7 @@ class PlayerController extends PluginController {
     */
     private function CheckSessionProgress($livestream)
     {
-        $session_info = new \stdClass();
+        $session_info = new stdClass();
         $today_timestamp = strtotime('now');
         $options = json_decode($livestream->options);
         // Check if coundown is selected!
@@ -533,7 +535,7 @@ class PlayerController extends PluginController {
                 // Check if the automatic next appointment is selected!
                 // First look for the actual termin.
                 $where = "range_id = ? AND date <= ? AND end_time >= ?";
-                $session_date = \CourseDate::findOneBySQL($where, 
+                $session_date = CourseDate::findOneBySQL($where, 
                         [Context::getId(),
                             $today_timestamp + $this->allow_player_before_start,
                             $today_timestamp,
@@ -541,7 +543,7 @@ class PlayerController extends PluginController {
                 // Jf there is no actual termin, then look for future termin
                 if (!$session_date) {
                     $where = "range_id = ? AND date > ?";
-                    $session_date = \CourseDate::findOneBySQL($where, 
+                    $session_date = CourseDate::findOneBySQL($where, 
                         [Context::getId(),
                             $today_timestamp + $this->allow_player_before_start
                         ]);
