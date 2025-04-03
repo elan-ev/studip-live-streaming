@@ -11,7 +11,7 @@
         <? foreach ($oc_players as $player_index => $player): ?>
             <section class="oc-player-section">
                 <h3><?= htmlReady($player['room_name']) ?></h3>
-                <? 
+                <?
                     // Dynamically instantiating the player_url and plyer_index variables.
                     $this->player_url = $player['url'];
                     $this->player_index = $player_index;
@@ -22,7 +22,7 @@
     <?endif;?>
 <? endif; ?>
 
-<? if (\Navigation::hasItem("/community/blubber") && $thread && $chat_active && $show_player): ?>
+<? if (StudipVersion::olderThan('5.5') && \Navigation::hasItem("/community/blubber") && $thread && $chat_active && $show_player): ?>
     <section class="blubber-section">
         <div class="blubber-container">
             <?= $this->render_partial("player/_livechat.php") ?>
