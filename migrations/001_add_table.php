@@ -56,9 +56,7 @@ class AddTable extends Migration
 
         //Drop Table
         $db->exec(sprintf('DROP TABLE IF EXISTS `%s`', 'livestream_seminar'));
-        
+
         SimpleORMap::expireTableScheme();
-
-
     }
 }

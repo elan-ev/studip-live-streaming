@@ -33,8 +33,11 @@
         </label>
     </fieldset>
     <footer>
-        <?= Studip\Button::createAccept(htmlReady($plugin->_('Daten speichern')), 'livestream_save', 
-                ['class' => 'livestream-save-button']) ?>
+        <?= Studip\Button::createAccept(
+                htmlReady($plugin->_('Daten speichern')),
+                'livestream_save',
+                ['class' => 'livestream-save-button']
+            ) ?>
     </footer>
 </form>
 <script>
@@ -54,5 +57,3 @@
         $('#oc_player_url').parent().css('display', ((state) ? 'block' : 'none'));
     }
 </script>
-
-    

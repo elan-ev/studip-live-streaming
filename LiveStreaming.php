@@ -144,7 +144,7 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
     /**
     * Returns the course summary page template.
     *
-    * @param $course_id the given course ID
+    * @param string $course_id the given course ID
     */
     public function getInfoTemplate($course_id)
     {
@@ -190,7 +190,7 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
      * parameters.
      *
      * @param String $string String to translate
-     * @return translated string
+     * @return string translated string
      */
     public function _($string)
     {
@@ -208,7 +208,6 @@ class LiveStreaming extends StudIPPlugin implements StandardPlugin, SystemPlugin
 
         return $result;
     }
-
 
     /**
      * Checks if opencast is loaded, and if course id is passed,

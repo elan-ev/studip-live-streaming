@@ -11,7 +11,7 @@
 		<input type="hidden" id="browser_start_time" value="">
 		<input type="hidden" id="orderby" value="mkdate">
 		<div id="editing_question" style="display: none;"><?= _("Wollen Sie den Beitrag wirklich bearbeiten?") ?></div>
-		
+
 		<ul id="blubber_threads" class="coursestream singlethread" aria-live="polite" aria-relevant="additions">
 			<?= $this->render_partial("player/_blubber.php", compact("thread")) ?>
 		</ul>

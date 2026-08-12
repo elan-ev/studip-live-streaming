@@ -22,7 +22,11 @@
     <?endif;?>
 <? endif; ?>
 
-<? if (StudipVersion::olderThan('5.5') && \Navigation::hasItem("/community/blubber") && $thread && $chat_active && $show_player): ?>
+<? if (
+        StudipVersion::olderThan('5.5') &&
+        \Navigation::hasItem("/community/blubber") &&
+        $thread && $chat_active && $show_player
+    ): ?>
     <section class="blubber-section">
         <div class="blubber-container">
             <?= $this->render_partial("player/_livechat.php") ?>
