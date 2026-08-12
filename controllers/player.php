@@ -195,13 +195,14 @@ class PlayerController extends PluginController {
             $this->player_index = 0;
             // countdown
             $next_date_livestream = Course::findCurrent()->getNextDate();
-            if (intval($livestream->countdown_activated) == 1) {
+            $this->show_countdown = false;
+            if (empty($next_date_livestream)) {
+                $this->show_player = false;
+            } else if (intval($livestream->countdown_activated) == 1) {
                 if ($livestream->session_start > 0) {
                     $this->upcoming_termin = $livestream->session_start;
                 } else {
-                    $livestream_datetime = explode(" -", $next_date_livestream)[0];
-                    $livestream_datetime = explode(", ", $livestream_datetime)[1];
-                    $this->upcoming_termin = strtotime($livestream_datetime);
+                    $this->upcoming_termin = $next_date_livestream->getBegin()->getTimestamp();
                 }
 
                 if ($this->upcoming_termin < strtotime('now')) {
@@ -371,7 +372,9 @@ class PlayerController extends PluginController {
         } else {
             $chat_active = Request::get('chat_active') ? 1 : 0;
             $options = json_decode($livestream->options) ?: new stdClass();
-            $options->livechat = $options->livechat ?: new stdClass();
+            if (empty($options->livechat)) {
+                $options->livechat = new stdClass();
+            }
             $options->livechat->active = $chat_active;
             $livestream->options = json_encode($options);
 
