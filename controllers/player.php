@@ -4,7 +4,7 @@
  * Stream Player controller class for Stud.IP
  *
  * @author    Viktoria Wiebe <vwiebe@uni-osnabrueck.de>
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -12,8 +12,8 @@
  **/
 
 class PlayerController extends PluginController {
-    
-    private $allow_player_before_start = 5*60; // 5 minutes before session start, show the player and chat!
+
+    private int $allow_player_before_start = 5 * 60; // 5 minutes before session start, show the player and chat!
     /**
     * Displays the player and access data for the stream for lecturers.
     */
@@ -23,12 +23,12 @@ class PlayerController extends PluginController {
         if(!$perm->have_studip_perm('tutor', Context::getId())) {
             throw new AccessDeniedException($this->plugin->_('Sie verfügen nicht über die notwendigen Rechte für diese Aktion'));
         }
-        
+
         Navigation::activateItem('/course/livestreaming/teacher');
-        
+
         $livestream_config = LiveStream::getConfig();
         $livestream = LiveStream::find(Context::getId());
-        
+
         if (!$livestream) {
             $livestream = new LiveStream();
             $livestream->seminar_id = Context::getId();
@@ -38,14 +38,17 @@ class PlayerController extends PluginController {
 
         $mode = $livestream->mode;
 
-        if ($this->plugin->checkOpenCast(Context::getId()) && $livestream_config['oc_player_url']) {
-            $this->select_mode = true;
-        } else if ($mode == LiveStreamLib::MODE_OPENCAST) { 
+        $select_mode = false;
+        if ($this->plugin->checkOpenCast(Context::getId()) && !empty($livestream_config['oc_player_url'])) {
+            $select_mode = true;
+        } else if ($mode == LiveStreamLib::MODE_OPENCAST) {
             // Forcing the mode to DEFAULT when the opencast is not activated/configured properly
             $mode = LiveStreamLib::MODE_DEFAULT;
             $livestream->mode = LiveStreamLib::MODE_DEFAULT;
             $livestream->store();
         }
+
+        $this->select_mode = $select_mode;
 
         $this->mode = $mode;
 
@@ -56,11 +59,11 @@ class PlayerController extends PluginController {
         $terminate_session = 0;
         $livechat = 0;
 
-        if ($options) {
-            if ($options->livechat) {
+        if (!empty($options)) {
+            if (!empty($options->livechat) && isset($options->livechat->active)) {
                 $livechat = intval($options->livechat->active);
             }
-            if ($options->termin && $options->termin->terminate_session) {
+            if (!empty($options->termin) && isset($options->termin->terminate_session)) {
                 $terminate_session = intval($options->termin->terminate_session);
             }
         }
@@ -68,8 +71,8 @@ class PlayerController extends PluginController {
         $this->chat_active = $livechat;
 
         if ($mode == LiveStreamLib::MODE_DEFAULT) {
-            $this->player_username  = $livestream_config['loginname'];
-            $this->player_password  = $livestream_config['password'];
+            $this->player_username  = $livestream_config['loginname'] ?? null;
+            $this->player_password  = $livestream_config['password'] ?? null;
             $this->sender_url       = str_replace(
                                         LiveStreamLib::URLPLACEHOLDER,
                                         Context::getId(),
@@ -82,8 +85,11 @@ class PlayerController extends PluginController {
                                     );
 
             $this->countdown_activated = intval($livestream->countdown_activated);
-            
+
             $this->terminate_session = $terminate_session;
+            $this->countdown_manuell = null;
+            $this->next_livestream = null;
+            $this->next_livestream_end = null;
             if ($this->countdown_activated == 1) {
                 if (intval($livestream->session_start) > 0) {
                     $this->countdown_manuell = 1;
@@ -101,7 +107,7 @@ class PlayerController extends PluginController {
                 }
             }
 
-            $this->sem_next_session = Seminar::getInstance(Context::getId())->getNextDate();
+            $this->sem_next_session = Course::findCurrent()->getNextDate();
         }
 
         if ($mode == LiveStreamLib::MODE_OPENCAST) {
@@ -163,7 +169,7 @@ class PlayerController extends PluginController {
     public function student_action()
     {
         Navigation::activateItem('/course/livestreaming/student');
-        
+
         $this->title = $this->plugin->_('LiveStreaming');
 
         $livestream_config = LiveStream::getConfig();
@@ -188,7 +194,7 @@ class PlayerController extends PluginController {
             // In this case (from home!), only one is possible.
             $this->player_index = 0;
             // countdown
-            $next_date_livestream = Seminar::getInstance(Context::getId())->getNextDate();
+            $next_date_livestream = Course::findCurrent()->getNextDate();
             if (intval($livestream->countdown_activated) == 1) {
                 if ($livestream->session_start > 0) {
                     $this->upcoming_termin = $livestream->session_start;
@@ -257,12 +263,12 @@ class PlayerController extends PluginController {
 
             // Live-Chat should now be available for both modes and it is shown only when the show_player is true.
             $this->chat_active = false;
-            
-            if ($options->livechat->active) {
+
+            if (!empty($options->livechat) && $options->livechat->active) {
                 $this->chat_active = true;
 
                 $next_date_formatted = !empty($next_date_livestream) ? explode(" ", explode(", ", $next_date_livestream)[1])[0] : date('d.m.Y');
-                
+
                 if (StudipVersion::olderThan('4.5')) {
                     $this->thread           = $this->getBlubberThreadOldStudip($next_date_formatted);
                     $this->course_id        = Context::getId();
@@ -291,10 +297,10 @@ class PlayerController extends PluginController {
             throw new AccessDeniedException($this->plugin->_('Sie verfügen nicht über die notwendigen Rechte für diese Aktion'));
         }
         CSRFProtection::verifyUnsafeRequest();
-        
+
         $livestream = LiveStream::find(Context::getId());
         $mode = $livestream->mode;
-        
+
         if ($mode != LiveStreamLib::MODE_DEFAULT) {
             PageLayout::postError($this->plugin->_('Mode ist ungültig.'));
         } else {
@@ -355,10 +361,10 @@ class PlayerController extends PluginController {
             throw new AccessDeniedException($this->plugin->_('Sie verfügen nicht über die notwendigen Rechte für diese Aktion'));
         }
         CSRFProtection::verifyUnsafeRequest();
-        
+
         $livestream = LiveStream::find(Context::getId());
         $mode = $livestream->mode;
-        
+
         // Providing Live-Chat for both modes.
         if ($mode != LiveStreamLib::MODE_DEFAULT && $mode != LiveStreamLib::MODE_OPENCAST) {
             PageLayout::postError($this->plugin->_('Mode ist ungültig.'));
@@ -368,28 +374,28 @@ class PlayerController extends PluginController {
             $options->livechat = $options->livechat ?: new stdClass();
             $options->livechat->active = $chat_active;
             $livestream->options = json_encode($options);
-            
+
             $livestream->store();
-            
+
             PageLayout::postSuccess(sprintf(
                 $chat_active ? _('"%s" wurde aktiviert.') : _('"%s" wurde deaktiviert.'),
                 'Live-Chat'
             ));
         }
-        
+
         $this->redirect('player/teacher');
     }
 
     /**
-    * getDateTime function duplication - in order to cover all version of Stud.IP 
+    * getDateTime function duplication - in order to cover all version of Stud.IP
     */
     private function getDateTime(
         $date_param = 'date',
         $date_format = 'Y-m-d',
         $time_param = 'time',
         $time_format = 'H:i',
-        $default = null) 
-    {
+        $default = null
+    ) {
         $date_value = Request::get($date_param);
         $time_value = Request::get($time_param);
 
@@ -435,9 +441,9 @@ class PlayerController extends PluginController {
         $threads = BlubberThread::findBySeminar(Context::getId());
         $thread_exists = false;
         $thread_id = null;
-        
+
         $return_thread = null;
-        
+
         $livestream_user_id = 'Livestream_' . $formatted_date;
 
         foreach ($threads as $thread) {
@@ -449,7 +455,7 @@ class PlayerController extends PluginController {
         }
 
         if (!$thread_exists) {
-            
+
             $thread = BlubberThread::create([
                 'context_type'      => 'course',
                 'context_id'        => Context::getId(),
@@ -460,17 +466,17 @@ class PlayerController extends PluginController {
                 'commentable'       => 1,
                 'content'           => ''
             ]);
-            
+
             $return_thread = $thread;
         }
-        
+
         return $return_thread;
-        
+
     }
-    
+
     /**
     * Finds the blubber thread corresponding to the specific livestream
-    * identified by date for studip versions older than 4.5. 
+    * identified by date for studip versions older than 4.5.
     * Creates a blubber thread if it does not exist.
     *
     * @param string $formatted_date a date in the format d.m.Y
@@ -480,15 +486,15 @@ class PlayerController extends PluginController {
     private function getBlubberThreadOldStudip($formatted_date)
     {
         $return_thread = null;
-    
+
         $thread = BlubberPosting::findBySQL(
-            "Seminar_id = ? AND user_id = ?", 
+            "Seminar_id = ? AND user_id = ?",
             [Context::getId(), 'Livestream_' . $formatted_date]
         );
 
         if (!$thread) {
             BlubberPosting::$course_hashes = Context::getId();
-            
+
             $thread = new BlubberPosting();
             $thread['seminar_id'] = Context::getId();
             $thread['context_type'] = 'course';
@@ -497,15 +503,15 @@ class PlayerController extends PluginController {
             $thread['description'] = $this->plugin->_('Schreib was, frag was.');
             $thread->store();
         }
-        
+
         $return_thread = BlubberPosting::findBySQL(
-            "Seminar_id = ? AND user_id = ?", 
+            "Seminar_id = ? AND user_id = ?",
             [Context::getId(), 'Livestream_' . $formatted_date]
         )[0];
 
         return $return_thread;
     }
-    
+
     /**
     * Checks if the session is in progress, and returns the info of the session
     *
@@ -535,7 +541,7 @@ class PlayerController extends PluginController {
                 // Check if the automatic next appointment is selected!
                 // First look for the actual termin.
                 $where = "range_id = ? AND date <= ? AND end_time >= ?";
-                $session_date = CourseDate::findOneBySQL($where, 
+                $session_date = CourseDate::findOneBySQL($where,
                         [Context::getId(),
                             $today_timestamp + $this->allow_player_before_start,
                             $today_timestamp,
@@ -543,11 +549,11 @@ class PlayerController extends PluginController {
                 // Jf there is no actual termin, then look for future termin
                 if (!$session_date) {
                     $where = "range_id = ? AND date > ?";
-                    $session_date = CourseDate::findOneBySQL($where, 
+                    $session_date = CourseDate::findOneBySQL($where,
                         [Context::getId(),
                             $today_timestamp + $this->allow_player_before_start
                         ]);
-                }    
+                }
 
                 if ($session_date) {
                     $session_info->can_show_player = intval($session_date->date) - ($this->allow_player_before_start) <= $today_timestamp && $today_timestamp <= intval($session_date->end_time);

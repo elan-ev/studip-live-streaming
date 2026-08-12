@@ -3,7 +3,7 @@
  * LiveStreaming Admin controller class for Stud.IP
  *
  * @author    Farbod Zamani Boroujeni <zamani@elan-ev.de>
- * 
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
@@ -45,12 +45,12 @@ class AdminController extends PluginController {
 
         $livestream_config = LiveStream::getConfig();
 
-        $this->player_url           = $livestream_config['player_url'];
-        $this->loginname            = $livestream_config['loginname'];
-        $this->player_password      = $livestream_config['password'];
-        $this->sender_url           = $livestream_config['sender_url'];
-        $this->use_opencast         = $livestream_config['use_opencast'];
-        $this->oc_player_url        = $livestream_config['oc_player_url'];
+        $this->player_url           = $livestream_config['player_url'] ?? null;
+        $this->loginname            = $livestream_config['loginname'] ?? null;
+        $this->player_password      = $livestream_config['password'] ?? null;
+        $this->sender_url           = $livestream_config['sender_url'] ?? null;
+        $this->use_opencast         = $livestream_config['use_opencast'] ?? null;
+        $this->oc_player_url        = $livestream_config['oc_player_url'] ?? null;
         $this->opencast_installed   = $this->plugin->checkOpenCast();
 
         $this->url_placeholder  = LiveStreamLib::URLPLACEHOLDER;
@@ -117,13 +117,16 @@ class AdminController extends PluginController {
             LiveStream::setConfig($livestream_config);
             PageLayout::postSuccess($this->plugin->_('Die LiveStreaming Daten wurden erfolgreich gespeichert.'));
         }
-        
+
         $this->redirect('admin/admin');
     }
 
-    private function checkUrl($url) {
+    private function checkUrl(string $url): bool {
         $res = true;
-        if (!filter_var($url, FILTER_VALIDATE_URL) || strpos($url, LiveStreamLib::URLPLACEHOLDER) === FALSE) {
+        if (
+            !filter_var($url, FILTER_VALIDATE_URL) ||
+            strpos($url, LiveStreamLib::URLPLACEHOLDER) === FALSE
+        ) {
             $res = false;
         }
         return $res;
