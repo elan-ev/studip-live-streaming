@@ -182,6 +182,8 @@ class PlayerController extends PluginController {
         }
 
         $this->mode = $mode;
+        $this->show_player = false;
+        $this->show_countdown = false;
         // Default Mode.
         if ($mode == LiveStreamLib::MODE_DEFAULT) {
             $this->show_player = true;
@@ -246,7 +248,9 @@ class PlayerController extends PluginController {
                 $this->show_countdown = true;
                 $this->upcoming_termin = $todays_session[LiveStreamLib::PENDING]['termin']->date;
             }
-            $this->response->add_header('Refresh', $refresh_in_seconds);
+            if ($refresh_in_seconds > 0) {
+                $this->response->add_header('Refresh', $refresh_in_seconds);
+            }
         }
 
         // NOTE:Live-Chat appears when the show_player is true only.

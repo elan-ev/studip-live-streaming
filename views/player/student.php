@@ -1,10 +1,10 @@
-<? if($show_countdown): ?>
+<? if($show_countdown ?? false): ?>
     <section>
         <?= $this->render_partial('player/_countdown') ?>
     </section>
 <? endif; ?>
 
-<? if($show_player): ?>
+<? if($show_player ?? false): ?>
     <? if($mode == LiveStreamLib::MODE_DEFAULT ): ?>
         <?= $this->render_partial('player/_video_player') ?>
     <? elseif($mode == LiveStreamLib::MODE_OPENCAST && !empty($oc_players)): ?>
