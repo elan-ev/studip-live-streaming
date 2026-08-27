@@ -1,6 +1,6 @@
 <section class="video-section" data-playe_index="<?= $player_index ?>">
     <div class="video-container">
-        <video 
+        <video
             id="stream_video_<?= $player_index ?>"
             class="op-player__media stream-video"
             playsinline
@@ -11,10 +11,10 @@
         </video>
         <div class="new-player">
             <?= \Icon::create('refresh', 'clickable', ['size' => '20', 'title' => $plugin->_('Player neu laden')])->asInput(['id' => 'player-reload-btn_' . $player_index, 'class' => 'reload-player-btn']) ?>
-            <p><?= $plugin->_('Falls Sie eine Fehlermeldung erhalten hat das Live-Streaming wahrscheinlich noch nicht begonnen. Der Player wird automatisch alle 30 Sekunden aktualisiert. 
+            <p><?= $plugin->_('Falls Sie eine Fehlermeldung erhalten hat das Live-Streaming wahrscheinlich noch nicht begonnen. Der Player wird automatisch alle 30 Sekunden aktualisiert.
                                 Sollte dies nicht der Fall sein können Sie den Player manuell neu laden.') ?></p>
         </div>
-        
+
     </div>
 
     <div class="zoom-styles">

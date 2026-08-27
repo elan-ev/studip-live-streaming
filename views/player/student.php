@@ -1,10 +1,10 @@
-<? if($show_countdown): ?>
+<? if($show_countdown ?? false): ?>
     <section>
         <?= $this->render_partial('player/_countdown') ?>
     </section>
 <? endif; ?>
 
-<? if($show_player): ?>
+<? if($show_player ?? false): ?>
     <? if($mode == LiveStreamLib::MODE_DEFAULT ): ?>
         <?= $this->render_partial('player/_video_player') ?>
     <? elseif($mode == LiveStreamLib::MODE_OPENCAST && !empty($oc_players)): ?>
@@ -22,7 +22,11 @@
     <?endif;?>
 <? endif; ?>
 
-<? if (StudipVersion::olderThan('5.5') && \Navigation::hasItem("/community/blubber") && $thread && $chat_active && $show_player): ?>
+<? if (
+        StudipVersion::olderThan('5.5') &&
+        \Navigation::hasItem("/community/blubber") &&
+        $thread && $chat_active && $show_player
+    ): ?>
     <section class="blubber-section">
         <div class="blubber-container">
             <?= $this->render_partial("player/_livechat.php") ?>

@@ -33,7 +33,7 @@ class LiveStreamLib {
 
         if (!$session_coursedates) {
             return [false, false];
-        } 
+        }
 
         $todays_scheduled_sessions = [];
 
@@ -79,7 +79,6 @@ class LiveStreamLib {
         return [$todays_scheduled_sessions, $closest_refresh_in_seconds];
     }
 
-
     /**
      * Returns the Capture Agent for the current session extracted from DB records of Opencast Plugin.
      *
@@ -91,12 +90,12 @@ class LiveStreamLib {
      */
     private static function GetOCCaptureAgent($termin_id, $cid) {
         try {
-            $date = new SingleDate($termin_id);
+            $date = new CourseDate($termin_id);
 
             // Check resources.
             $oc_resource = DBManager::get()->fetchOne(
                 'SELECT * FROM `oc_resources` WHERE `resource_id` = :resource_id',
-                [':resource_id' => $date->resource_id]
+                [':resource_id' => $date->room_booking->resource_id]
             );
             // If resource does not exist, we return false.
             if (empty($oc_resource) && empty($oc_resource['capture_agent'])) {
@@ -106,7 +105,7 @@ class LiveStreamLib {
 
             // Get the scheduled recordings for that capture agent from oc_scheduled_recordings.
             $oc_scheduled_recording = DBManager::get()->fetchOne(
-                'SELECT * FROM oc_scheduled_recordings 
+                'SELECT * FROM oc_scheduled_recordings
                     WHERE seminar_id = :cid AND date_id = :date_id AND capture_agent = :capture_agent AND status = :status',
                 [':cid' => $cid, 'date_id' => $termin_id, 'capture_agent' => $capture_agent, 'status' => 'scheduled']);
 

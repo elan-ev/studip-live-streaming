@@ -10,7 +10,7 @@ class AddOptionsField extends Migration
     public function up()
     {
         $db = DBManager::get();
-        $db->exec("ALTER TABLE livestream_seminar 
+        $db->exec("ALTER TABLE livestream_seminar
                     ADD COLUMN options TEXT DEFAULT NULL AFTER countdown_timestamp");
         SimpleORMap::expireTableScheme();
 
@@ -19,7 +19,7 @@ class AddOptionsField extends Migration
     public function down()
     {
         $db = DBManager::get();
-        $db->exec("ALTER TABLE livestream_seminar 
+        $db->exec("ALTER TABLE livestream_seminar
                     DROP COLUMN options");
         SimpleORMap::expireTableScheme();
     }
