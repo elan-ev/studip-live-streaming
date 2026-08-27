@@ -1,6 +1,6 @@
 {
     "name": "LiveStreaming",
-    "version": "1.6",
+    "version": "2.0",
     "description": "StudIP Live Streaming Plugin",
     "main": "index.js",
     "scripts": {
@@ -17,7 +17,7 @@
         "@babel/preset-env": "^7.14.1",
         "babel-loader": "^8.2.2",
         "css-loader": "^5.2.4",
-        "css-minimizer-webpack-plugin": "^2.0.0",
+        "css-minimizer-webpack-plugin": "^8.0.0",
         "file-loader": "^6.2.0",
         "hls.js": "^1.1.5",
         "mini-css-extract-plugin": "^1.6.0",
